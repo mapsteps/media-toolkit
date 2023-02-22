@@ -1,0 +1,19 @@
+{
+    "name": "mapsteps/media-toolkit",
+    "description": "Toolkit for media in WordPress",
+    "type": "project",
+    "license": "GPL-3.0-or-later",
+    "autoload": {
+        "psr-4": {
+            "MediaToolkit\\Module\\": "modules/",
+            "MediaToolkit\\": ""
+        }
+    },
+    "authors": [
+        {
+            "name": "David Vongries"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}

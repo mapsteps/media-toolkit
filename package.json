@@ -1,0 +1,15 @@
+{
+	"name": "media-toolkit",
+	"version": "0.1.0",
+	"description": "Toolkit for media in WordPress",
+	"keywords": [],
+	"author": "David Vongries",
+	"license": "GPL-3.0-or-later",
+	"scripts": {
+		"watch-settings": "parcel build assets-src/settings.ts --dist-dir assets/js",
+		"build-settings": "parcel build assets-src/settings.ts --dist-dir assets/js"
+	},
+	"devDependencies": {
+		"parcel": "^2.8.3"
+	}
+}
