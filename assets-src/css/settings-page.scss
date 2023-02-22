@@ -1,0 +1,177 @@
+// Vars
+.mediatk-settings-page {
+	--mediatk-brand-color: #2764F1;
+	--mediatk-danger-color: #47D87C;
+}
+
+// Loading animation
+@-webkit-keyframes mediaTkLoadingSpinner {
+	from {
+		transform: rotate(0);
+	}
+	to {
+		transform: rotate(359deg);
+	}
+}
+
+@keyframes mediaTkLoadingSpinner {
+	from {
+		transform: rotate(0);
+	}
+	to {
+		transform: rotate(359deg);
+	}
+}
+
+.mediatk-settings-page {
+	// Button
+	.button.is-loading {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: transparent !important;
+		pointer-events: none;
+
+		&::after {
+			content: "";
+			position: absolute;
+			width: 1em;
+			display: block;
+			height: 1em;
+			border: 2px solid #dbdbdb;
+			border-color: transparent transparent #fff #fff !important;
+			border-radius: 290486px;
+			-webkit-animation: mediaTkLoadingSpinner 0.5s infinite linear;
+			animation: mediaTkLoadingSpinner 0.5s infinite linear;
+		}
+	}
+
+	.button-link {
+		border-width: 0;
+		background-color: transparent;
+		font-size: 17px;
+		text-decoration: underline;
+
+		&:focus,
+		&:active {
+			outline: none;
+			box-shadow: none;
+			border-width: 0;
+		}
+
+		&.is-disabled {
+			color: #ddd;
+		}
+
+		&.is-right-side {
+			float: right;
+
+			&.is-loading {
+				justify-content: flex-end;
+			}
+		}
+
+		&.is-loading {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			color: transparent !important;
+			pointer-events: none;
+
+			&::after {
+				content: "";
+				position: absolute;
+				width: 1em;
+				display: block;
+				height: 1em;
+				border: 2px solid #7ab4e3;
+				border-color: transparent transparent #2271b1 #2271b1 !important;
+				border-radius: 290486px;
+				-webkit-animation: mediaTkLoadingSpinner 0.5s infinite linear;
+				animation: mediaTkLoadingSpinner 0.5s infinite linear;
+			}
+		}
+	}
+
+	.submission-status {
+		margin-left: 15px;
+		line-height: 39px;
+	}
+
+	.submission-status.is-hidden {
+		display: none;
+	}
+
+	.submission-status.is-success {
+		color: #0fa953;
+	}
+
+	.submission-status.is-error {
+		color: tomato;
+	}
+}
+
+// Featured products
+.featured-products-banner {
+	img {
+		border: 1px solid #ddd;
+		max-width: 100%;
+	}
+}
+
+.mediatk-featured-products {
+	> h2 {
+		text-align: center;
+		margin-bottom: 50px;
+		font-size: 24px;
+	}
+
+	.products {
+		display: flex;
+		justify-content: space-between;
+
+		li {
+			width: 32%;
+		}
+
+		.subheadline {
+			font-weight: 600;
+			margin-top: -6px;
+		}
+
+		img {
+			max-width: 100%;
+		}
+	}
+
+	.credit {
+		margin-top: 20px;
+		text-align: center;
+		opacity: 0.5;
+	}
+}
+
+// Heatbox adjustment
+.heatbox {
+	position: relative;
+
+	.checkbox-label {
+		.is-disabled {
+			opacity: 0.6;
+		}
+	}
+
+	.heatbox-overlay.is-hidden {
+		display: none;
+	}
+
+	.heatbox-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		background-color: rgba(0, 0, 0, 0.1);
+		width: 100%;
+		height: 100%;
+		z-index: 100;
+	}
+}
