@@ -1,0 +1,43 @@
+# wp org builds #
+#######
+builds
+
+# npm #
+#######
+node_modules
+npm-debug.log
+package-lock.json
+
+# assets build tool caches #
+######################
+.parcel-cache
+
+# composer #
+############
+vendor/bin
+vendor/composer/installers
+vendor/composer/autoload_files.php
+vendor/dealerdirect
+vendor/phpcompatibility
+vendor/squizlabs
+vendor/wp-coding-standards
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# SVN #
+#######
+.svn
+svn
+
+# Local Dev files #
+###################
+.phpcs.xml
+phpcs.xml
