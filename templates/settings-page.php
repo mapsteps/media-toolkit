@@ -50,6 +50,8 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 					<?php do_settings_sections( 'mediatoolkit-general-settings' ); ?>
 				</div>
 
+				<?php submit_button( '', 'button button-primary button-larger', 'submit', false ); ?>
+
 			<!-- </div> -->
 
 			<!-- <div class="heatbox-admin-panel recommended-panel"> -->
