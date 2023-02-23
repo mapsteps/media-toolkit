@@ -44,7 +44,7 @@ return function ( $settings ) {
 	<br />
 
 	<label for="mediatoolkit_settings[replace_original_image]" class="label checkbox-label">
-		Replace the original image with the one that has the max size.
+		Replace the original image with the resized one using the max size above.
 
 		<input
 			type="checkbox"

@@ -21,7 +21,7 @@ return function ( $settings ) {
 		type="text"
 		id="mediatoolkit_settings--rename-uploaded-image"
 		name="mediatoolkit_settings[image_rename_format]"
-		class="regular-text"
+		class="mediatk-text-field is-large"
 		value="<?php echo esc_attr( $rename_structure ); ?>" placeholder=""
 	/>
 

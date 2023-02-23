@@ -111,6 +111,23 @@
 	}
 }
 
+.mediatk-text-field {
+	width: 100%;
+	max-width: 250px;
+
+	&.is-fullwidth {
+		max-width: 100%;
+	}
+
+	&.is-large {
+		max-width: 400px;
+	}
+}
+
+.mediatk-size-field {
+	width: 120px;
+}
+
 // Featured products
 .featured-products-banner {
 	img {
