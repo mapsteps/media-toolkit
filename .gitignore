@@ -38,7 +38,8 @@ Thumbs.db
 .svn
 svn
 
-# Local Dev files #
+# Formatting & linting configs #
 ###################
+.editorconfig
 .phpcs.xml
 phpcs.xml
