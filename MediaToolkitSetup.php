@@ -105,7 +105,14 @@ class MediaToolkitSetup {
 		// General fields.
 		add_settings_field( 'rename-uploaded-image', __( 'Rename uploaded image', 'media-toolkit' ), array( $this, 'rename_uploaded_image_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );
 		add_settings_field( 'compression-quality', __( 'Compression quality', 'media-toolkit' ), array( $this, 'compression_quality_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );
-		add_settings_field( 'max-size', __( 'Max image width & height in px', 'media-toolkit' ), array( $this, 'max_size_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );
+
+		$max_size_label = sprintf(
+			/* translators: %s: The max upload size. */
+			__( 'Max image dimension %1$s', 'media-toolkit' ),
+			'<div class="description">Max image width and height in px</div>'
+		);
+
+		add_settings_field( 'max-size', $max_size_label, array( $this, 'max_size_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );
 
 	}
 

@@ -21,7 +21,7 @@ return function ( $settings ) {
 		type="number"
 		id="mediatoolkit_settings--compression-quality"
 		name="mediatoolkit_settings[compression_quality]"
-		class="mediatk-size-field"
+		class="mediatk-dimension-field"
 		value="<?php echo esc_attr( $quality ); ?>" placeholder="83"
 	/>
 

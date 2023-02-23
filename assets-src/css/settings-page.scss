@@ -1,7 +1,7 @@
 // Vars
 .mediatk-settings-page {
-	--mediatk-brand-color: #2764F1;
-	--mediatk-danger-color: #47D87C;
+	--mediatk-brand-color: #2764f1;
+	--mediatk-danger-color: #47d87c;
 }
 
 // Loading animation
@@ -124,18 +124,33 @@
 	}
 }
 
-.mediatk-size-field {
+.mediatk-dimension-field {
 	width: 120px;
 }
 
-// Featured products
-.featured-products-banner {
-	img {
-		border: 1px solid #ddd;
-		max-width: 100%;
+.mediatk-dimensions {
+	display: flex;
+	align-items: center;
+
+	.mediatk-dimension {
+		width: 120px;
+
+		&:not(:last-child) {
+			margin-right: 10px;
+		}
+	}
+
+	label {
+		display: block;
+		margin-bottom: 5px;
+	}
+
+	.mediatk-dimension-field {
+		width: 100%;
 	}
 }
 
+// Featured products
 .mediatk-featured-products {
 	> h2 {
 		text-align: center;
@@ -190,5 +205,22 @@
 		width: 100%;
 		height: 100%;
 		z-index: 100;
+	}
+
+	.form-table {
+		th {
+			.description {
+				font-weight: 400;
+				font-style: italic;
+				color: #646970;
+			}
+		}
+	}
+}
+
+// Misc.
+.heatbox .mediatk-checkbox-label {
+	.indicator {
+		top: 2px;
 	}
 }

@@ -19,32 +19,38 @@ return function ( $settings ) {
 	$max_height = isset( $settings['image_max_height'] ) ? $settings['image_max_height'] : '';
 	?>
 
-	<div>
-		<input
-			type="number"
-			step="1"
-			min="0"
-			id="mediatoolkit_settings--image-max-width"
-			name="mediatoolkit_settings[image_max_width]"
-			class="mediatk-size-field"
-			value="<?php echo esc_attr( $max_width ); ?>" placeholder="Max width"
-		/>
+	<div class="mediatk-dimensions">
+		<div class="mediatk-dimension">
+			<label for="mediatoolkit_settings--image-max-width">Max width</label>
+			<input
+				type="number"
+				step="1"
+				min="0"
+				id="mediatoolkit_settings--image-max-width"
+				name="mediatoolkit_settings[image_max_width]"
+				class="mediatk-dimension-field"
+				value="<?php echo esc_attr( $max_width ); ?>" placeholder=""
+			/>
+		</div>
 
-		<input
-			type="number"
-			step="1"
-			min="0"
-			id="mediatoolkit_settings--image-max-height"
-			name="mediatoolkit_settings[image_max_height]"
-			class="mediatk-size-field"
-			value="<?php echo esc_attr( $max_height ); ?>" placeholder="Max height"
-		/>
+		<div class="mediatk-dimension">
+			<label for="mediatoolkit_settings--image-max-height">Max height</label>
+			<input
+				type="number"
+				step="1"
+				min="0"
+				id="mediatoolkit_settings--image-max-height"
+				name="mediatoolkit_settings[image_max_height]"
+				class="mediatk-dimension-field"
+				value="<?php echo esc_attr( $max_height ); ?>" placeholder=""
+			/>
+		</div>
 	</div>
 
 	<br />
 
-	<label for="mediatoolkit_settings[replace_original_image]" class="label checkbox-label">
-		Replace the original image with the resized one using the max size above.
+	<label for="mediatoolkit_settings[replace_original_image]" class="label checkbox-label mediatk-checkbox-label">
+		Replace the original image with the resized one using the max size above.<br />This will also remove the image exif data.
 
 		<input
 			type="checkbox"

@@ -26,7 +26,7 @@ return function ( $settings ) {
 	/>
 
 	<p class="description">
-		<?php _e( 'You can use the template tags here.', 'media-toolkit' ); ?>
+		<?php _e( 'Format the uploaded image name. You can use the template tags here.', 'media-toolkit' ); ?>
 	</p>
 
 	<?php
