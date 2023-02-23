@@ -23,6 +23,8 @@ function setup() {
 	add_filter( 'admin_body_class', '\MediaToolkit\setup_admin_body_class' );
 	add_action( 'admin_init', '\MediaToolkit\setup_settings' );
 
+	add_action( 'wp_generate_attachment_metadata', '\MediaToolkit\replace_original_image', 10, 3 );
+
 }
 
 /**
@@ -71,8 +73,24 @@ function setup_admin_body_class( $classes ) {
  * Setup settings.
  */
 function setup_settings() {
-	
+
 	$instance = new MediaToolkitSetup();
 	$instance->add_settings();
+
+}
+
+/**
+ * Replace original image.
+ *
+ * @param array  $metadata The attachment metadata.
+ * @param int    $attachment_id The attachment ID.
+ * @param string $context The context.
+ *
+ * @return array
+ */
+function replace_original_image( $metadata, $attachment_id, $context ) {
+
+	$instance = new MediaToolkitOutput();
+	return $instance->replace_original_image( $metadata, $attachment_id, $context );
 
 }

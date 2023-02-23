@@ -37,8 +37,6 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 
 	<div class="heatbox-container heatbox-container-center heatbox-column-container">
 
-		<?php settings_fields( 'mediatoolkit-settings-group' ); ?>
-
 		<div class="heatbox-main">
 
 			<!-- <div class="heatbox-admin-panel settings-panel"> -->
@@ -46,11 +44,16 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 				<!-- Faking H1 tag to place admin notices -->
 				<h1 style="display: none;"></h1>
 
-				<div class="heatbox mediatk-settings-metabox">
-					<?php do_settings_sections( 'mediatoolkit-general-settings' ); ?>
-				</div>
+				<form method="post" action="options.php" class="mediatoolkit-settings-form">
 
-				<?php submit_button( '', 'button button-primary button-larger', 'submit', false ); ?>
+					<?php settings_fields( 'mediatoolkit-settings-group' ); ?>
+
+					<div class="heatbox mediatk-settings-metabox">
+						<?php do_settings_sections( 'mediatoolkit-general-settings' ); ?>
+					</div>
+
+					<?php submit_button( '', 'button button-primary button-larger', 'submit', false ); ?>
+				</form>
 
 			<!-- </div> -->
 

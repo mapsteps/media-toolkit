@@ -15,8 +15,8 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 return function ( $settings ) {
 
 	$is_checked = isset( $settings['replace_original_image'] ) ? true : false;
-	$max_width  = isset( $settings['max_image_width'] ) ? $settings['max_image_width'] : '';
-	$max_height = isset( $settings['max_image_height'] ) ? $settings['max_image_height'] : '';
+	$max_width  = isset( $settings['image_max_width'] ) ? $settings['image_max_width'] : '';
+	$max_height = isset( $settings['image_max_height'] ) ? $settings['image_max_height'] : '';
 	?>
 
 	<div>
@@ -24,8 +24,8 @@ return function ( $settings ) {
 			type="number"
 			step="1"
 			min="0"
-			id="mediatoolkit_settings--max-image-width"
-			name="mediatoolkit_settings[max_image_width]"
+			id="mediatoolkit_settings--image-max-width"
+			name="mediatoolkit_settings[image_max_width]"
 			class="mediatk-size-field"
 			value="<?php echo esc_attr( $max_width ); ?>" placeholder="Max width"
 		/>
@@ -34,8 +34,8 @@ return function ( $settings ) {
 			type="number"
 			step="1"
 			min="0"
-			id="mediatoolkit_settings--max-image-height"
-			name="mediatoolkit_settings[max_image_height]"
+			id="mediatoolkit_settings--image-max-height"
+			name="mediatoolkit_settings[image_max_height]"
 			class="mediatk-size-field"
 			value="<?php echo esc_attr( $max_height ); ?>" placeholder="Max height"
 		/>
