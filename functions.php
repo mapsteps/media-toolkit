@@ -21,6 +21,7 @@ function setup() {
 	add_action( 'admin_menu', '\MediaToolkit\setup_submenu_page' );
 	add_action( 'admin_enqueue_scripts', '\MediaToolkit\enqueue_admin_scripts' );
 	add_filter( 'admin_body_class', '\MediaToolkit\setup_admin_body_class' );
+	add_action( 'admin_init', '\MediaToolkit\setup_settings' );
 
 }
 
@@ -63,5 +64,15 @@ function setup_admin_body_class( $classes ) {
 
 	$instance = new MediaToolkitSetup();
 	return $instance->admin_body_class( $classes );
+
+}
+
+/**
+ * Setup settings.
+ */
+function setup_settings() {
+	
+	$instance = new MediaToolkitSetup();
+	$instance->add_settings();
 
 }

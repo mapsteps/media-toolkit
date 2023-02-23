@@ -37,7 +37,7 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 
 	<div class="heatbox-container heatbox-container-center heatbox-column-container">
 
-		<?php settings_fields( 'media-toolkit-settings-group' ); ?>
+		<?php settings_fields( 'mediatoolkit-settings-group' ); ?>
 
 		<div class="heatbox-main">
 
@@ -47,7 +47,7 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 				<h1 style="display: none;"></h1>
 
 				<div class="heatbox mediatk-settings-metabox">
-					<?php do_settings_sections( 'media-toolkit-settings' ); ?>
+					<?php do_settings_sections( 'mediatoolkit-general-settings' ); ?>
 				</div>
 
 			<!-- </div> -->

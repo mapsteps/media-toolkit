@@ -13,11 +13,18 @@ namespace MediaToolkit;
 class MediaToolkitSetup {
 
 	/**
+	 * The settings.
+	 *
+	 * @var array
+	 */
+	private $settings = array();
+
+	/**
 	 * Check if we're on the Kirki settings page.
 	 *
 	 * @return bool
 	 */
-	public function is_settings_page() {
+	private function is_settings_page() {
 		$current_screen = get_current_screen();
 
 		return ( 'media_page_media-toolkit' === $current_screen->id ? true : false );
@@ -79,6 +86,56 @@ class MediaToolkitSetup {
 	public function render_submenu_page() {
 
 		require __DIR__ . '/templates/settings-page.php';
+
+	}
+
+	/**
+	 * Add settings.
+	 */
+	public function add_settings() {
+
+		$this->settings = get_option( 'mediatoolkit_settings', [] );
+
+		// Register settings.
+		register_setting( 'mediatoolkit-settings-group', 'mediatoolkit_settings' );
+
+		// Register sections.
+		add_settings_section( 'mediatoolkit-general-section', __( 'General Settings', 'media-toolkit' ), '', 'mediatoolkit-general-settings' );
+
+		// General fields.
+		add_settings_field( 'rename-uploaded-image', __( 'Rename uploaded image', 'media-toolkit' ), array( $this, 'rename_uploaded_image_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );
+		add_settings_field( 'compression-quality', __( 'Compression quality', 'media-toolkit' ), array( $this, 'compression_quality_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );
+		add_settings_field( 'max-size', __( 'Max image width & height in px', 'media-toolkit' ), array( $this, 'max_size_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );
+
+	}
+
+	/**
+	 * Render the rename uploaded image field.
+	 */
+	public function rename_uploaded_image_field() {
+
+		$field = require __DIR__ . '/templates/fields/rename-uploaded-image-field.php';
+		$field( $this->settings );
+
+	}
+
+	/**
+	 * Render the compression quality field.
+	 */
+	public function compression_quality_field() {
+
+		$field = require __DIR__ . '/templates/fields/compression-quality-field.php';
+		$field( $this->settings );
+
+	}
+
+	/**
+	 * Render the max size field.
+	 */
+	public function max_size_field() {
+
+		$field = require __DIR__ . '/templates/fields/max-size-field.php';
+		$field( $this->settings );
 
 	}
 
