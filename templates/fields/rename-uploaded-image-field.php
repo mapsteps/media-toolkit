@@ -14,13 +14,13 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
  */
 return function ( $settings ) {
 
-	$rename_structure = isset( $settings['rename_uploaded_image'] ) ? $settings['rename_uploaded_image'] : '';
+	$rename_structure = isset( $settings['image_rename_format'] ) ? $settings['image_rename_format'] : '';
 	?>
 
 	<input
 		type="text"
 		id="mediatoolkit_settings--rename-uploaded-image"
-		name="mediatoolkit_settings[rename_uploaded_image]"
+		name="mediatoolkit_settings[image_rename_format]"
 		class="regular-text"
 		value="<?php echo esc_attr( $rename_structure ); ?>" placeholder=""
 	/>
