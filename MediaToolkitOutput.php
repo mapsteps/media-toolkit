@@ -73,6 +73,27 @@ class MediaToolkitOutput {
 	}
 
 	/**
+	 * Set compression quality.
+	 *
+	 * @param int    $quality The current compression quality.
+	 * @param string $mime_type The mime type.
+	 *
+	 * @return int
+	 */
+	public function set_compression_quality( $quality, $mime_type ) {
+
+		$settings    = get_option( 'mediatoolkit_settings', [] );
+		$new_quality = isset( $settings['compression_quality'] ) ? absint( $settings['compression_quality'] ) : 0;
+
+		if ( empty( $new_quality ) ) {
+			return $quality;
+		}
+
+		return $new_quality;
+
+	}
+
+	/**
 	 * Replace the original uploaded image with custom-defined size.
 	 * Please be aware that the image exif data will be removed.
 	 *

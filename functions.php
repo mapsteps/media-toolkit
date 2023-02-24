@@ -32,6 +32,7 @@ function output() {
 
 	add_action( 'big_image_size_threshold', '\MediaToolkit\change_big_image_threshold', 10000, 1 );
 	add_filter( 'wp_handle_upload_prefilter', '\MediaToolkit\modify_attachment_filename' );
+	add_filter( 'wp_editor_set_quality', '\MediaToolkit\set_compression_quality', 10, 2 );
 	add_action( 'wp_generate_attachment_metadata', '\MediaToolkit\replace_original_image', 10, 3 );
 
 }
@@ -120,6 +121,21 @@ function modify_attachment_filename( $file ) {
 
 	$instance = new MediaToolkitOutput();
 	return $instance->modify_attachment_filename( $file );
+
+}
+
+/**
+ * Set compression quality.
+ *
+ * @param int    $quality The current compression quality.
+ * @param string $mime_type The mime type.
+ *
+ * @return int
+ */
+function set_compression_quality( $quality, $mime_type ) {
+
+	$instance = new MediaToolkitOutput();
+	return $instance->set_compression_quality( $quality, $mime_type );
 
 }
 
