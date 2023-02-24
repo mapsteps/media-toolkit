@@ -100,7 +100,7 @@ class MediaToolkitSetup {
 		register_setting( 'mediatoolkit-settings-group', 'mediatoolkit_settings' );
 
 		// Register sections.
-		add_settings_section( 'mediatoolkit-rename-section', __( 'Rename uploaded image', 'media-toolkit' ), '', 'mediatoolkit-rename-settings' );
+		add_settings_section( 'mediatoolkit-rename-section', __( 'Change image filename', 'media-toolkit' ), '', 'mediatoolkit-rename-settings' );
 		add_settings_section( 'mediatoolkit-quality-section', __( 'Image quality', 'media-toolkit' ), '', 'mediatoolkit-quality-settings' );
 		add_settings_section( 'mediatoolkit-replace-original-section', __( 'Replace original image', 'media-toolkit' ), '', 'mediatoolkit-replace-original-settings' );
 
@@ -120,7 +120,7 @@ class MediaToolkitSetup {
 	}
 
 	/**
-	 * Render the "rename uploaded image" field.
+	 * Render the "Change image filename" field.
 	 */
 	public function rename_uploaded_image_field() {
 

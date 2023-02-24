@@ -1,6 +1,6 @@
 <?php
 /**
- * Rename uploaded image field.
+ * Change image filename field.
  *
  * @package MediaToolkit
  */
@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || die( "Can't access directly" );
 
 /**
- * Output "rename uploaded image" field.
+ * Output "Change image filename" field.
  *
  * @param array $settings The setting values.
  */
