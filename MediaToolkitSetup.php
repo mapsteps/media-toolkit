@@ -100,7 +100,7 @@ class MediaToolkitSetup {
 		register_setting( 'mediatoolkit-settings-group', 'mediatoolkit_settings' );
 
 		// Register sections.
-		add_settings_section( 'mediatoolkit-general-section', __( 'General Settings', 'media-toolkit' ), '', 'mediatoolkit-general-settings' );
+		add_settings_section( 'mediatoolkit-general-section', __( 'General settings', 'media-toolkit' ), '', 'mediatoolkit-general-settings' );
 
 		// General fields.
 		add_settings_field( 'rename-uploaded-image', __( 'Rename uploaded image', 'media-toolkit' ), array( $this, 'rename_uploaded_image_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );

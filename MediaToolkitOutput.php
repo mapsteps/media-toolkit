@@ -13,21 +13,63 @@ namespace MediaToolkit;
 class MediaToolkitOutput {
 
 	/**
-	 * The settings.
+	 * Modify attachment filename.
 	 *
-	 * @var array
+	 * @param array $file The file info array.
+	 * @return string The file info array.
 	 */
-	private $settings = array();
+	public function modify_attachment_filename( $file ) {
 
-	/**
-	 * Check if we're on the Kirki settings page.
-	 *
-	 * @return bool
-	 */
-	private function is_settings_page() {
-		$current_screen = get_current_screen();
+		$settings      = get_option( 'mediatoolkit_settings', [] );
+		$rename_format = isset( $settings['image_rename_format'] ) ? $settings['image_rename_format'] : '';
 
-		return ( 'media_page_media-toolkit' === $current_screen->id ? true : false );
+		if ( ! $rename_format ) {
+			return $file;
+		}
+
+		$current_user = wp_get_current_user();
+
+		if ( $current_user && property_exists( $current_user, 'ID' ) ) {
+			$first_name = $current_user->first_name;
+			$first_name = empty( $first_name ) ? $current_user->display_name : $first_name;
+			$last_name  = $current_user->last_name;
+			$full_name  = $first_name . ' ' . $last_name;
+		} else {
+			$first_name = '';
+			$last_name  = '';
+			$full_name  = '';
+		}
+
+		$info = pathinfo( $file['name'] );
+		$ext  = empty( $info['extension'] ) ? '' : '.' . $info['extension'];
+
+		$original_filename = basename( $file['name'], $ext );
+		$upload_timestamp  = strtotime( 'now' );
+
+		$upload_date = current_time( 'Y-m-d' );
+		$unique_id   = uniqid();
+
+		$filename = sanitize_text_field( $rename_format );
+		$filename = str_ireplace( '{author_first_name}', $first_name, $filename );
+		$filename = str_ireplace( '{author_last_name}', $last_name, $filename );
+		$filename = str_ireplace( '{author_full_name}', $full_name, $filename );
+		$filename = str_ireplace( '{original_file_name}', $original_filename, $filename );
+		$filename = str_ireplace( '{upload_timestamp}', $upload_timestamp, $filename );
+		$filename = str_ireplace( '{upload_date}', $upload_date, $filename );
+		$filename = str_ireplace( '{random_id}', $unique_id, $filename );
+
+		// Sanitize the file name.
+		$filename = trim( $filename );
+		$filename = strtolower( $filename );
+		$filename = str_replace( ' ', '-', $filename );
+		$filename = sanitize_title( $filename );
+		$filename = $filename . $ext;
+		$filename = apply_filters( 'mediatoolkit_attachment_filename', $filename );
+
+		$file['name'] = $filename;
+
+		return $file;
+
 	}
 
 	/**

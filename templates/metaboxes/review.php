@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 
 <div class="heatbox">
 	<h2>
-		<?php _e( 'Leave a Review', 'media-toolkit' ); ?>
+		<?php _e( 'Leave a review', 'media-toolkit' ); ?>
 	</h2>
 	<div class="heatbox-content">
 		<p class="description">

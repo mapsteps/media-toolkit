@@ -23,3 +23,4 @@ require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/functions.php';
 
 add_action( 'plugins_loaded', '\MediaToolkit\setup' );
+add_action( 'plugins_loaded', '\MediaToolkit\output' );

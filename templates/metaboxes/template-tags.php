@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 ?>
 
 <div class="heatbox mediatk-tags-metabox">
-	<h2><?php _e( 'Template Tags', 'media-toolkit' ); ?></h2>
+	<h2><?php _e( 'Template tags', 'media-toolkit' ); ?></h2>
 	<div class="heatbox-content">
 		<p><?php _e( 'Use the template tags below in "Rename uploaded image" field to build the uploaded file name.', 'media-toolkit' ); ?></p>
 		<p class="tags-wrapper">

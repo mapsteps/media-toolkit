@@ -13,7 +13,7 @@ namespace MediaToolkit;
 use MediaToolkit\MediaToolkitSetup;
 
 /**
- * Setup the plugin.
+ * Setup the plugin's functionalities.
  */
 function setup() {
 
@@ -23,6 +23,14 @@ function setup() {
 	add_filter( 'admin_body_class', '\MediaToolkit\setup_admin_body_class' );
 	add_action( 'admin_init', '\MediaToolkit\setup_settings' );
 
+}
+
+/**
+ * Output the plugin's functionalities.
+ */
+function output() {
+
+	add_filter( 'wp_handle_upload_prefilter', '\MediaToolkit\modify_attachment_filename' );
 	add_action( 'wp_generate_attachment_metadata', '\MediaToolkit\replace_original_image', 10, 3 );
 
 }
@@ -76,6 +84,19 @@ function setup_settings() {
 
 	$instance = new MediaToolkitSetup();
 	$instance->add_settings();
+
+}
+
+/**
+ * Modify attachment filename.
+ *
+ * @param array $file The file info array.
+ * @return string The file info array.
+ */
+function modify_attachment_filename( $file ) {
+
+	$instance = new MediaToolkitOutput();
+	return $instance->modify_attachment_filename( $file );
 
 }
 
