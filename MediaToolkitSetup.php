@@ -100,11 +100,13 @@ class MediaToolkitSetup {
 		register_setting( 'mediatoolkit-settings-group', 'mediatoolkit_settings' );
 
 		// Register sections.
-		add_settings_section( 'mediatoolkit-general-section', __( 'General settings', 'media-toolkit' ), '', 'mediatoolkit-general-settings' );
+		add_settings_section( 'mediatoolkit-rename-section', __( 'Rename uploaded image', 'media-toolkit' ), '', 'mediatoolkit-rename-settings' );
+		add_settings_section( 'mediatoolkit-quality-section', __( 'Image quality', 'media-toolkit' ), '', 'mediatoolkit-quality-settings' );
+		add_settings_section( 'mediatoolkit-replace-original-section', __( 'Replace original image', 'media-toolkit' ), '', 'mediatoolkit-replace-original-settings' );
 
 		// General fields.
-		add_settings_field( 'rename-uploaded-image', __( 'Rename uploaded image', 'media-toolkit' ), array( $this, 'rename_uploaded_image_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );
-		add_settings_field( 'compression-quality', __( 'Compression quality', 'media-toolkit' ), array( $this, 'compression_quality_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );
+		add_settings_field( 'rename-uploaded-image', __( 'File name structure', 'media-toolkit' ), array( $this, 'rename_uploaded_image_field' ), 'mediatoolkit-rename-settings', 'mediatoolkit-rename-section' );
+		add_settings_field( 'compression-quality', __( 'Compression quality', 'media-toolkit' ), array( $this, 'compression_quality_field' ), 'mediatoolkit-quality-settings', 'mediatoolkit-quality-section' );
 
 		$max_dimension_label = sprintf(
 			/* translators: %s: The max upload size. */
@@ -112,7 +114,8 @@ class MediaToolkitSetup {
 			'<div class="description">Max image size (in px) for both width and height</div>'
 		);
 
-		add_settings_field( 'max-size', $max_dimension_label, array( $this, 'image_max_dimension_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );
+		add_settings_field( 'replace-original-image', __( 'Replace original image', 'media-toolkit' ), array( $this, 'replace_original_image_field' ), 'mediatoolkit-replace-original-settings', 'mediatoolkit-replace-original-section' );
+		add_settings_field( 'image-max-dimension', $max_dimension_label, array( $this, 'image_max_dimension_field' ), 'mediatoolkit-replace-original-settings', 'mediatoolkit-replace-original-section' );
 
 	}
 
@@ -132,6 +135,16 @@ class MediaToolkitSetup {
 	public function compression_quality_field() {
 
 		$field = require __DIR__ . '/templates/fields/compression-quality-field.php';
+		$field( $this->settings );
+
+	}
+
+	/**
+	 * Render the "replace original image" field.
+	 */
+	public function replace_original_image_field() {
+
+		$field = require __DIR__ . '/templates/fields/replace-original-image-field.php';
 		$field( $this->settings );
 
 	}

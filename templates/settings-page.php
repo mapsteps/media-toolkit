@@ -1,4 +1,7 @@
 <?php
+
+declare( strict_types=1 );
+
 /**
  * Settings page template.
  *
@@ -49,7 +52,15 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 					<?php settings_fields( 'mediatoolkit-settings-group' ); ?>
 
 					<div class="heatbox mediatk-settings-metabox">
-						<?php do_settings_sections( 'mediatoolkit-general-settings' ); ?>
+						<?php do_settings_sections( 'mediatoolkit-rename-settings' ); ?>
+					</div>
+
+					<div class="heatbox mediatk-settings-metabox">
+						<?php do_settings_sections( 'mediatoolkit-quality-settings' ); ?>
+					</div>
+
+					<div class="heatbox mediatk-settings-metabox">
+						<?php do_settings_sections( 'mediatoolkit-replace-original-settings' ); ?>
 					</div>
 
 					<?php submit_button( '', 'button button-primary button-larger', 'submit', false ); ?>
