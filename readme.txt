@@ -1,7 +1,7 @@
 === Media Toolkit ===
 Contributors: davidvongries
 Tags: Media Toolkit, Media Library, Image Compression, Photo Quality, Image Dimensions
-Requires at least: 4.0
+Requires at least: 5.3
 Tested up to: 6.1
 Stable tag: 0.1
 License: GPLv2 or later
