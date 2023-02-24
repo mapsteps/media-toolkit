@@ -77,8 +77,7 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 
 			<?php
 			require __DIR__ . '/metaboxes/template-tags.php';
-			// require __DIR__ . '/metaboxes/documentation.php';
-			// require __DIR__ . '/metaboxes/review.php';
+			require __DIR__ . '/metaboxes/review.php';
 			?>
 
 		</div>

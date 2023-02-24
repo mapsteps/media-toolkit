@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || die( "Can't access directly" );
 
 /**
- * Output "compression quality" field.
+ * Output "Quality" field.
  *
  * @param array $settings The setting values.
  */
@@ -23,7 +23,7 @@ return function ( $settings ) {
 		name="mediatoolkit_settings[compression_quality]"
 		class="mediatk-dimension-field"
 		value="<?php echo esc_attr( $quality ); ?>" placeholder="82"
-	/>
+	/> <code>%</code>
 
 	<?php
 };

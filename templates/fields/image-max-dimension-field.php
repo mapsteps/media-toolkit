@@ -25,9 +25,7 @@ return function ( $settings ) {
 		name="mediatoolkit_settings[image_max_dimension]"
 		class="mediatk-dimension-field"
 		value="<?php echo esc_attr( $max_dimension ); ?>" placeholder="2560"
-	/>
-
-	<p class="description">This will only be applied if "Replace original image" is enabled</p>
+	/> <code>px</code>
 
 	<?php
 };

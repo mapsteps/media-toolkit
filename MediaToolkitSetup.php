@@ -100,27 +100,33 @@ class MediaToolkitSetup {
 		register_setting( 'mediatoolkit-settings-group', 'mediatoolkit_settings' );
 
 		// Register sections.
-		add_settings_section( 'mediatoolkit-rename-section', __( 'Change image filename', 'media-toolkit' ), '', 'mediatoolkit-rename-settings' );
-		add_settings_section( 'mediatoolkit-quality-section', __( 'Image quality', 'media-toolkit' ), '', 'mediatoolkit-quality-settings' );
-		add_settings_section( 'mediatoolkit-replace-original-section', __( 'Replace original image', 'media-toolkit' ), '', 'mediatoolkit-replace-original-settings' );
+		add_settings_section( 'mediatoolkit-rename-section', __( 'Change filename structure', 'media-toolkit' ), '', 'mediatoolkit-rename-settings' );
+		add_settings_section( 'mediatoolkit-quality-section', __( 'Change image quality', 'media-toolkit' ), '', 'mediatoolkit-quality-settings' );
+		add_settings_section( 'mediatoolkit-replace-original-section', __( 'Max image size', 'media-toolkit' ), '', 'mediatoolkit-replace-original-settings' );
 
 		// General fields.
-		add_settings_field( 'rename-uploaded-image', __( 'File name structure', 'media-toolkit' ), array( $this, 'rename_uploaded_image_field' ), 'mediatoolkit-rename-settings', 'mediatoolkit-rename-section' );
-		add_settings_field( 'compression-quality', __( 'Compression quality', 'media-toolkit' ), array( $this, 'compression_quality_field' ), 'mediatoolkit-quality-settings', 'mediatoolkit-quality-section' );
+		add_settings_field( 'rename-uploaded-image', __( 'Filename structure', 'media-toolkit' ), array( $this, 'rename_uploaded_image_field' ), 'mediatoolkit-rename-settings', 'mediatoolkit-rename-section' );
+		add_settings_field( 'compression-quality', __( 'Quality', 'media-toolkit' ), array( $this, 'compression_quality_field' ), 'mediatoolkit-quality-settings', 'mediatoolkit-quality-section' );
 
 		$max_dimension_label = sprintf(
 			/* translators: %s: The max upload size. */
-			__( 'Max image dimension %1$s', 'media-toolkit' ),
-			'<div class="description">Max image size (in px) for both width and height</div>'
+			__( 'Max image size %1$s', 'media-toolkit' ),
+			'<div class="description">Define the max image size in px. Will apply to the "longer edge".</div>'
 		);
 
-		add_settings_field( 'replace-original-image', __( 'Replace original image', 'media-toolkit' ), array( $this, 'replace_original_image_field' ), 'mediatoolkit-replace-original-settings', 'mediatoolkit-replace-original-section' );
+		$replace_original_image_label = sprintf(
+			/* translators: %s: The max upload size. */
+			__( 'Replace original images %1$s', 'media-toolkit' ),
+			'<div class="description">On upload, this will downscale the original image to the threshold provided below.</div>'
+		);
+
+		add_settings_field( 'replace-original-image', $replace_original_image_label, array( $this, 'replace_original_image_field' ), 'mediatoolkit-replace-original-settings', 'mediatoolkit-replace-original-section' );
 		add_settings_field( 'image-max-dimension', $max_dimension_label, array( $this, 'image_max_dimension_field' ), 'mediatoolkit-replace-original-settings', 'mediatoolkit-replace-original-section' );
 
 	}
 
 	/**
-	 * Render the "Change image filename" field.
+	 * Render the "Change filename structure" field.
 	 */
 	public function rename_uploaded_image_field() {
 
@@ -130,7 +136,7 @@ class MediaToolkitSetup {
 	}
 
 	/**
-	 * Render the "compression quality" field.
+	 * Render the "Quality" field.
 	 */
 	public function compression_quality_field() {
 
@@ -140,7 +146,7 @@ class MediaToolkitSetup {
 	}
 
 	/**
-	 * Render the "replace original image" field.
+	 * Render the "Replace original image" field.
 	 */
 	public function replace_original_image_field() {
 
@@ -150,7 +156,7 @@ class MediaToolkitSetup {
 	}
 
 	/**
-	 * Render the "image max dimension" field.
+	 * Render the "Max image size" field.
 	 */
 	public function image_max_dimension_field() {
 
