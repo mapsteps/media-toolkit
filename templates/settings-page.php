@@ -25,7 +25,7 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 						<?php echo esc_html( get_admin_page_title() ); ?>
 						<span class="version"><?php echo esc_html( MEDIA_TOOLKIT_PLUGIN_VERSION ); ?></span>
 					</span>
-					<p class="subtitle"><?php _e( 'The toolkit for WordPress media.', 'media-toolkit' ); ?></p>
+					<p class="subtitle"><?php _e( 'A utility plugin for the WordPress media library.', 'media-toolkit' ); ?></p>
 				</div>
 
 				<div>
