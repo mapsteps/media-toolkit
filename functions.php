@@ -89,7 +89,7 @@ function setup_settings() {
 }
 
 /**
- * Change big image threshold.
+ * Disable big image threshold when the original image is being replaced.
  *
  * @param int $threshold The current threshold.
  * @return int|bool
@@ -102,12 +102,8 @@ function change_big_image_threshold( $threshold ) {
 	$max_dimension    = isset( $settings['image_max_dimension'] ) ? absint( $settings['image_max_dimension'] ) : 0;
 
 	// Disable the threshold if the original image is being replaced.
-	if ( $replace_original ) {
+	if ( $replace_original && ! empty( $max_dimension ) ) {
 		return false;
-	}
-
-	if ( ! empty( $max_dimension ) ) {
-		return $max_dimension;
 	}
 
 	return $threshold;

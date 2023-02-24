@@ -103,7 +103,6 @@ class MediaToolkitOutput {
 
 		$settings = get_option( 'mediatoolkit_settings', [] );
 		$enabled  = isset( $settings['replace_original_image'] ) ? absint( $settings['replace_original_image'] ) : 0;
-		$enabled  = boolval( $enabled );
 
 		if ( ! $enabled ) {
 			return $metadata;
