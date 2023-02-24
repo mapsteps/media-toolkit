@@ -216,11 +216,30 @@
 			}
 		}
 	}
+
+	.mediatk-checkbox-label {
+		.description {
+			font-style: italic;
+			color: #646970;
+		}
+
+		.indicator {
+			top: 4px;
+		}
+	}
+
+	.radio-label {
+		padding-left: 28px;
+	}
 }
 
 // Misc.
-.heatbox .mediatk-checkbox-label {
-	.indicator {
-		top: 4px;
+.mediatk-multiline-radio-fields {
+	.radio-label {
+		display: block;
+
+		&:not(:last-child) {
+			margin-bottom: 10px;
+		}
 	}
 }

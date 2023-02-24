@@ -30,6 +30,7 @@ function setup() {
  */
 function output() {
 
+	add_action( 'big_image_size_threshold', '\MediaToolkit\change_big_image_threshold', 10000, 1 );
 	add_filter( 'wp_handle_upload_prefilter', '\MediaToolkit\modify_attachment_filename' );
 	add_action( 'wp_generate_attachment_metadata', '\MediaToolkit\replace_original_image', 10, 3 );
 
@@ -84,6 +85,32 @@ function setup_settings() {
 
 	$instance = new MediaToolkitSetup();
 	$instance->add_settings();
+
+}
+
+/**
+ * Change big image threshold.
+ *
+ * @param int $threshold The current threshold.
+ * @return int|bool
+ */
+function change_big_image_threshold( $threshold ) {
+
+	$settings = get_option( 'mediatoolkit_settings', [] );
+
+	$replace_original = isset( $settings['replace_original_image'] ) ? absint( $settings['replace_original_image'] ) : 0;
+	$max_dimension    = isset( $settings['image_max_dimension'] ) ? absint( $settings['image_max_dimension'] ) : 0;
+
+	// Disable the threshold if the original image is being replaced.
+	if ( $replace_original ) {
+		return false;
+	}
+
+	if ( ! empty( $max_dimension ) ) {
+		return $max_dimension;
+	}
+
+	return $threshold;
 
 }
 

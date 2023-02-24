@@ -22,5 +22,5 @@ define( 'MEDIA_TOOLKIT_PLUGIN_VERSION', '0.1.0' );
 require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/functions.php';
 
-add_action( 'plugins_loaded', '\MediaToolkit\setup' );
-add_action( 'plugins_loaded', '\MediaToolkit\output' );
+\MediaToolkit\setup();
+\MediaToolkit\output();

@@ -106,18 +106,18 @@ class MediaToolkitSetup {
 		add_settings_field( 'rename-uploaded-image', __( 'Rename uploaded image', 'media-toolkit' ), array( $this, 'rename_uploaded_image_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );
 		add_settings_field( 'compression-quality', __( 'Compression quality', 'media-toolkit' ), array( $this, 'compression_quality_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );
 
-		$max_size_label = sprintf(
+		$max_dimension_label = sprintf(
 			/* translators: %s: The max upload size. */
 			__( 'Max image dimension %1$s', 'media-toolkit' ),
-			'<div class="description">Max image width and height in px</div>'
+			'<div class="description">Max image size (in px) for both width and height</div>'
 		);
 
-		add_settings_field( 'max-size', $max_size_label, array( $this, 'max_size_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );
+		add_settings_field( 'max-size', $max_dimension_label, array( $this, 'image_max_dimension_field' ), 'mediatoolkit-general-settings', 'mediatoolkit-general-section' );
 
 	}
 
 	/**
-	 * Render the rename uploaded image field.
+	 * Render the "rename uploaded image" field.
 	 */
 	public function rename_uploaded_image_field() {
 
@@ -127,7 +127,7 @@ class MediaToolkitSetup {
 	}
 
 	/**
-	 * Render the compression quality field.
+	 * Render the "compression quality" field.
 	 */
 	public function compression_quality_field() {
 
@@ -137,11 +137,11 @@ class MediaToolkitSetup {
 	}
 
 	/**
-	 * Render the max size field.
+	 * Render the "image max dimension" field.
 	 */
-	public function max_size_field() {
+	public function image_max_dimension_field() {
 
-		$field = require __DIR__ . '/templates/fields/max-size-field.php';
+		$field = require __DIR__ . '/templates/fields/image-max-dimension-field.php';
 		$field( $this->settings );
 
 	}

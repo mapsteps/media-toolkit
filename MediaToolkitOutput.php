@@ -102,16 +102,28 @@ class MediaToolkitOutput {
 		}
 
 		$settings = get_option( 'mediatoolkit_settings', [] );
+		$enabled  = isset( $settings['replace_original_image'] ) ? absint( $settings['replace_original_image'] ) : 0;
+		$enabled  = boolval( $enabled );
 
-		$max_width  = isset( $settings['image_max_width'] ) ? $settings['image_max_width'] : 0;
-		$max_height = isset( $settings['image_max_height'] ) ? $settings['image_max_height'] : 0;
-
-		// Stop if the max width or height is not set.
-		if ( empty( $max_width ) || empty( $max_height ) ) {
+		if ( ! $enabled ) {
 			return $metadata;
 		}
 
-		$image_path = get_attached_file( $attachment_id );
+		$max_dimension = isset( $settings['image_max_dimension'] ) ? absint( $settings['image_max_dimension'] ) : 0;
+
+		// Stop if the max dimension is not set.
+		if ( empty( $max_dimension ) ) {
+			return $metadata;
+		}
+
+		/**
+		 * If `big_image_size_threshold` is enabled, the real original image will stay
+		 * but the "full" size will be scaled (the filename will have "-scaled" suffix).
+		 *
+		 * That's why we should use `wp_get_original_image_path` instead of `get_attached_file`.
+		 * Because `get_attached_file` can return the scaled image path.
+		 */
+		$image_path = wp_get_original_image_path( $attachment_id );
 		$mime_type  = get_post_mime_type( $attachment_id );
 
 		// Stop if the mime type is not an image.
@@ -142,7 +154,7 @@ class MediaToolkitOutput {
 		}
 
 		// Resize the image.
-		$result = $editor->resize( $max_width, $max_height, false );
+		$result = $editor->resize( $max_dimension, $max_dimension, false );
 
 		if ( is_wp_error( $result ) ) {
 			return $metadata;
@@ -154,6 +166,7 @@ class MediaToolkitOutput {
 		// If image is saved, let's update the necessary metadata.
 		if ( ! is_wp_error( $result ) ) {
 			// Might be useful to update some metadata.
+			do_action( 'mediatoolkit_after_replace_original_image', $attachment_id, $metadata );
 		}
 
 		return $metadata;
