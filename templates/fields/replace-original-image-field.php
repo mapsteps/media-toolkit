@@ -18,7 +18,7 @@ return function ( $settings ) {
 	?>
 
 	<label for="mediatoolkit_settings[replace_original_image]" class="label checkbox-label mediatk-checkbox-label">
-		Enable
+		<?php esc_html_e( 'Enable', 'media-toolkit' ); ?>
 
 		<input
 			type="checkbox"

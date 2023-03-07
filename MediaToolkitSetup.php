@@ -111,13 +111,13 @@ class MediaToolkitSetup {
 		$max_dimension_label = sprintf(
 			/* translators: %s: The max upload size. */
 			__( 'Max image size %1$s', 'media-toolkit' ),
-			'<div class="description">Define the max image size in px. Will apply to the "longer edge".</div>'
+			'<div class="description">' . __( 'Define the max image size in px. Will apply to the "longer edge".', 'media-toolkit' ) . '</div>'
 		);
 
 		$replace_original_image_label = sprintf(
 			/* translators: %s: The max upload size. */
 			__( 'Replace original images %1$s', 'media-toolkit' ),
-			'<div class="description">On upload, this will downscale the original image to the threshold provided below.</div>'
+			'<div class="description">' . __( 'On upload, this will downscale the original image to the threshold provided below.', 'media-toolkit' ) . '</div>'
 		);
 
 		add_settings_field( 'replace-original-image', $replace_original_image_label, array( $this, 'replace_original_image_field' ), 'mediatoolkit-replace-original-settings', 'mediatoolkit-replace-original-section' );
