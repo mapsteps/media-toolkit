@@ -117,7 +117,7 @@ class MediaToolkitSetup {
 		$replace_original_image_label = sprintf(
 			/* translators: %s: The max upload size. */
 			__( 'Replace original images %1$s', 'media-toolkit' ),
-			'<div class="description">' . __( 'On upload, this will downscale the original image to the threshold provided below.', 'media-toolkit' ) . '</div>'
+			'<div class="description">' . __( 'Upon upload, this will downscale the original image to the threshold provided below.', 'media-toolkit' ) . '</div>'
 		);
 
 		add_settings_field( 'replace-original-image', $replace_original_image_label, array( $this, 'replace_original_image_field' ), 'mediatoolkit-replace-original-settings', 'mediatoolkit-replace-original-section' );
