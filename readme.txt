@@ -3,7 +3,7 @@ Contributors: davidvongries
 Tags: Media Toolkit, Media Library, Image Compression, Photo Quality, Image Dimensions
 Requires at least: 5.3
 Tested up to: 6.1
-Stable tag: 0.1.0
+Stable tag: 1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,5 +31,7 @@ Media Toolkit actually replaces the original image with the threshold defined in
 1. Settings Page
 
 == Changelog ==
-= 0.1 February 24, 2023 =
+= 1.0 November 30, 2023 =
+* Overall improvements
+= 0.1.0 February 24, 2023 =
 * Initial release
