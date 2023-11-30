@@ -17,9 +17,7 @@ return function ( $settings ) {
 	$is_checked = isset( $settings['replace_original_image'] ) ? true : false;
 	?>
 
-	<label for="mediatoolkit_settings[replace_original_image]" class="label checkbox-label mediatk-checkbox-label">
-		<?php esc_html_e( 'Enable', 'media-toolkit' ); ?>
-
+	<label for="mediatoolkit_settings[replace_original_image]" class="toggle-switch">
 		<input
 			type="checkbox"
 			name="mediatoolkit_settings[replace_original_image]"
@@ -27,8 +25,9 @@ return function ( $settings ) {
 			value="1"
 			<?php checked( $is_checked, true ); ?>
 		/>
-
-		<div class="indicator"></div>
+		<div class="switch-track">
+			<div class="switch-thumb"></div>
+		</div>
 	</label>
 
 	<?php

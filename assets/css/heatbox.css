@@ -166,7 +166,8 @@
 
 /* 2 Column Layout - Responsiveness */
 @media screen and (max-width: 991px) {
-	.heatbox-main, .heatbox-sidebar {
+	.heatbox-main,
+	.heatbox-sidebar {
 		width: 100%;
 	}
 	.heatbox-main {
@@ -256,7 +257,6 @@
 }
 
 .heatbox .setting-fields {
-
 }
 
 .heatbox .setting-fields .setting-field {
@@ -410,6 +410,52 @@
 
 .heatbox-cta.primary .button:hover {
 	background: rgba(0, 45, 96, 0.6);
+}
+
+/* Toggle switch */
+.heatbox .toggle-switch {
+	position: relative;
+	display: inline-block;
+	width: 36px;
+	height: 20px;
+}
+
+/* Hide default checkbox */
+.heatbox .toggle-switch input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.heatbox .toggle-switch .switch-track {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #ccc;
+	border-radius: 10px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+}
+
+.heatbox .switch-thumb {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 16px;
+	height: 16px;
+	background-color: #fff;
+	border-radius: 50%;
+	transition: transform 0.3s;
+}
+
+.heatbox .toggle-switch input:checked + .switch-track {
+	background-color: #4caf50;
+}
+
+.heatbox .toggle-switch input:checked + .switch-track .switch-thumb {
+	transform: translateX(16px);
 }
 
 /* RTL */
