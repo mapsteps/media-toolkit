@@ -47,6 +47,8 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 				<!-- Faking H1 tag to place admin notices -->
 				<h1 style="display: none;"></h1>
 
+				<?php settings_errors(); ?>
+
 				<form method="post" action="options.php" class="mediatoolkit-settings-form">
 
 					<?php settings_fields( 'mediatoolkit-settings-group' ); ?>
