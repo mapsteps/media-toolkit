@@ -22,6 +22,7 @@ function setup() {
 	add_action( 'admin_enqueue_scripts', '\MediaToolkit\enqueue_admin_scripts' );
 	add_filter( 'admin_body_class', '\MediaToolkit\setup_admin_body_class' );
 	add_action( 'admin_init', '\MediaToolkit\setup_settings' );
+	add_filter( 'plugin_action_links_' . MEDIA_TOOLKIT_PLUGIN_BASENAME, '\MediaToolkit\plugin_action_links' );
 
 }
 
@@ -43,6 +44,20 @@ function output() {
 function setup_text_domain() {
 
 	load_plugin_textdomain( 'media-toolkit', false, MEDIA_TOOLKIT_PLUGIN_DIR . '/languages' );
+
+}
+
+/**
+ * Add action links displayed in plugins page.
+ *
+ * @param array $links The action links array.
+ * @return array The modified action links array.
+ */
+function plugin_action_links( $links ) {
+
+	$settings = array( '<a href="' . admin_url( 'upload.php?page=media-toolkit' ) . '">' . __( 'Settings', 'media-toolkit' ) . '</a>' );
+
+	return array_merge( $settings, $links );
 
 }
 
