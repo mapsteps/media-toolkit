@@ -458,6 +458,30 @@
 	transform: translateX(16px);
 }
 
+/* Tags / chips */
+.heatbox .tags-wrapper code {
+	display: inline-block;
+	margin-bottom: 3px;
+	padding-left: 8px;
+	padding-right: 8px;
+	background-color: #fff;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	cursor: pointer;
+}
+
+/* Misc */
+.heatbox .row-disabled {
+	background-color: #f5f5f5;
+	opacity: 0.7;
+}
+
+.heatbox .row-disabled input[type="text"]:read-only,
+.heatbox .row-disabled input[type="number"]:read-only {
+	background-color: #e0e0e0;
+	cursor: not-allowed;
+}
+
 /* RTL */
 .rtl .heatbox-header .logo-container img {
 	float: left;
