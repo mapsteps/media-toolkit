@@ -451,7 +451,7 @@
 }
 
 .heatbox .toggle-switch input:checked + .switch-track {
-	background-color: #4caf50;
+	background-color: #5bcb86;
 }
 
 .heatbox .toggle-switch input:checked + .switch-track .switch-thumb {

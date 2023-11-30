@@ -61,7 +61,7 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 						<?php do_settings_sections( 'mediatoolkit-quality-settings' ); ?>
 					</div>
 
-					<div class="heatbox mediatk-settings-metabox">
+					<div class="heatbox mediatk-settings-metabox max-size-settings">
 						<?php do_settings_sections( 'mediatoolkit-replace-original-settings' ); ?>
 					</div>
 

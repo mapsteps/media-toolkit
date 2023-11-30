@@ -1,2 +1,2 @@
-
+!function(){function e(e){let i=e.target;i&&t(i)}function t(e){let t=e.closest("tr");if(!t)return;let i=t?.closest("table");if(!i)return;let n=i.querySelector("tr:nth-child(2)");n&&(e.checked?n.classList.remove("row-disabled"):n.classList.add("row-disabled"))}!function(){if(!document.querySelector("form.mediatoolkit-settings-form"))return;let i=document.getElementById("mediatoolkit_settings[replace_original_image]");i&&(t(i),i.addEventListener("change",e))}()}();
 //# sourceMappingURL=settings-page.js.map
