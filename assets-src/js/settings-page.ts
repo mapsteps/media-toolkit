@@ -40,15 +40,13 @@
 		}, 1500);
 	}
 
-	function copyToClipboard(text: string) {
-		navigator.clipboard
-			.writeText(text)
-			.then(() => {
-				console.log("Text copied to clipboard:", text);
-			})
-			.catch((err) => {
-				console.error("Unable to copy text to clipboard:", err);
-			});
+	async function copyToClipboard(text: string) {
+		try {
+			await navigator.clipboard.writeText(text);
+			console.log("Text copied to clipboard:", text);
+		} catch (err) {
+			console.error("Unable to copy text to clipboard:", err);
+		}
 	}
 
 	function setupFieldsInteraction() {
