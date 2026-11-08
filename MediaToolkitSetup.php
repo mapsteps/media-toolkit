@@ -76,8 +76,8 @@ class MediaToolkitSetup {
 					'running'   => __( 'Optimizing…', 'media-toolkit' ),
 					/* translators: 1: number of processed images, 2: total number of images. */
 					'count'     => __( '%1$d of %2$d', 'media-toolkit' ),
-					/* translators: 1: optimized images, 2: skipped images, 3: failed images. */
-					'done'      => __( '%1$d optimized, %2$d skipped, %3$d failed.', 'media-toolkit' ),
+					/* translators: 1: processed images, 2: skipped images, 3: failed images. */
+					'done'      => __( '%1$d processed, %2$d skipped, %3$d failed.', 'media-toolkit' ),
 					'none'      => __( 'No images found.', 'media-toolkit' ),
 					'crashed'   => __( 'The server stopped while optimizing this image, most likely it ran out of memory. Try a smaller image or ask your host for more memory.', 'media-toolkit' ),
 					/* translators: %d: attachment ID. */
@@ -86,7 +86,9 @@ class MediaToolkitSetup {
 					'noChange'  => __( 'No change', 'media-toolkit' ),
 					/* translators: %d: number of images. */
 					'logLimit'  => __( 'Showing the last %d images.', 'media-toolkit' ),
-					'already'   => __( 'No disk space saved. Your images were already small, or the image quality is now higher than before.', 'media-toolkit' ),
+					'already'   => __( 'No disk space saved, your images were already optimized.', 'media-toolkit' ),
+					/* translators: %s: extra disk space, e.g. "12.4 MB". */
+					'grew'      => __( 'Your images now use %s more disk space, because image sizes were created that didn\'t exist before.', 'media-toolkit' ),
 					'error'     => __( 'Something went wrong. You can resume where it stopped.', 'media-toolkit' ),
 					'failed'    => __( 'Something went wrong. Please reload the page and try again.', 'media-toolkit' ),
 					/* translators: 1: number of processed images, 2: total number of images. */

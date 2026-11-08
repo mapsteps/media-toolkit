@@ -370,6 +370,11 @@ span.mediatk-log-thumb {
 	background-color: var(--heatbox-surface-muted);
 }
 
+.mediatk-badge.is-bigger {
+	color: #8a4b00;
+	background-color: #fcefd9;
+}
+
 .mediatk-badge.is-failed {
 	color: #8a2424;
 	background-color: #f9dcde;
@@ -391,6 +396,16 @@ span.mediatk-log-thumb {
 		opacity: 1;
 		transform: none;
 	}
+}
+
+.mediatk-bulk-done.is-bigger {
+	background-color: #fcf9e8;
+	border-color: #f0e2b0;
+}
+
+.mediatk-bulk-done.is-bigger .dashicons,
+.mediatk-bulk-done.is-bigger .mediatk-bulk-done-saved {
+	color: #8a4b00;
 }
 
 @keyframes mediatkSquash {

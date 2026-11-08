@@ -231,7 +231,19 @@
 	function bytesText(image) {
 		var text = formatBytes(image.after.bytes);
 
-		return image.before.bytes > image.after.bytes ? formatBytes(image.before.bytes) + ' → ' + text : text;
+		return image.before.bytes !== image.after.bytes ? formatBytes(image.before.bytes) + ' → ' + text : text;
+	}
+
+	// "−43%" if the files got smaller, "+5%" if they got bigger, "No change" if they're the same.
+	function getBadge(image) {
+		var before = image.before.bytes;
+		var after = image.after.bytes;
+		var percent = Math.max(1, Math.abs(getPercent(image)));
+
+		if (after < before) return { text: '−' + percent + '%', className: '' };
+		if (after > before) return { text: '+' + percent + '%', className: ' is-bigger' };
+
+		return { text: i18n.noChange, className: ' is-neutral' };
 	}
 
 	// Add an image to the list below the current one, newest on top.
@@ -243,7 +255,7 @@
 		var title = document.createElement('a');
 		var meta = document.createElement('span');
 		var badge = document.createElement('span');
-		var percent = failed ? 0 : getPercent(image);
+		var result = failed ? { text: i18n.failedTag, className: ' is-failed' } : getBadge(image);
 
 		row.className = 'mediatk-log-row' + (failed ? ' is-failed' : '');
 
@@ -269,8 +281,8 @@
 		meta.className = 'mediatk-log-meta';
 		meta.textContent = failed ? image.reason : dimensionsText(image) + ' · ' + bytesText(image);
 
-		badge.className = 'mediatk-badge' + (failed ? ' is-failed' : percent > 0 ? '' : ' is-neutral');
-		badge.textContent = failed ? i18n.failedTag : percent > 0 ? '−' + percent + '%' : i18n.noChange;
+		badge.className = 'mediatk-badge' + result.className;
+		badge.textContent = result.text;
 
 		info.className = 'mediatk-log-info';
 		info.appendChild(title);
@@ -309,7 +321,7 @@
 	function showImage(image) {
 		var before = image.before;
 		var after = image.after;
-		var percent = getPercent(image);
+		var result = getBadge(image);
 		var badge = el('.mediatk-bulk-percent');
 
 		// The previous image moves into the list.
@@ -326,7 +338,7 @@
 		currentImage.hidden = !image.thumbnail;
 
 		var resized = before.width !== after.width || before.height !== after.height;
-		var smaller = before.bytes > after.bytes;
+		var changed = before.bytes !== after.bytes;
 
 		el('.mediatk-bulk-current-title').textContent = image.title;
 		el('.mediatk-bulk-dimensions-before').textContent = before.width + ' × ' + before.height;
@@ -337,11 +349,11 @@
 		// Only show "before →" if something changed.
 		el('.mediatk-bulk-dimensions-before').hidden = !resized;
 		el('.mediatk-bulk-dimensions-before + .mediatk-arrow').hidden = !resized;
-		el('.mediatk-bulk-bytes-before').hidden = !smaller;
-		el('.mediatk-bulk-bytes-before + .mediatk-arrow').hidden = !smaller;
+		el('.mediatk-bulk-bytes-before').hidden = !changed;
+		el('.mediatk-bulk-bytes-before + .mediatk-arrow').hidden = !changed;
 
-		badge.textContent = '−' + percent + '%';
-		badge.hidden = percent <= 0;
+		badge.textContent = result.text;
+		badge.className = 'mediatk-badge mediatk-bulk-percent' + result.className;
 	}
 
 	function showDone(run) {
@@ -353,7 +365,16 @@
 		done.hidden = false;
 		bulkStatus.textContent = '';
 
-		el('.mediatk-bulk-done-saved').textContent = run.saved > 0 ? format(i18n.total, [formatBytes(run.saved)]) : i18n.already;
+		var summary = i18n.already;
+
+		if (run.saved > 0) {
+			summary = format(i18n.total, [formatBytes(run.saved)]);
+		} else if (run.saved < 0) {
+			summary = format(i18n.grew, [formatBytes(-run.saved)]);
+		}
+
+		el('.mediatk-bulk-done-saved').textContent = summary;
+		done.classList.toggle('is-bigger', run.saved < 0);
 		el('.mediatk-bulk-done-counts').textContent = format(i18n.done, [run.totals.optimized, run.totals.skipped, run.totals.failed]);
 	}
 

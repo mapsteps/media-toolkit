@@ -162,6 +162,8 @@ class MediaToolkitOutput {
 			return false;
 		}
 
+		limit_quality( $editor, $path );
+
 		$filetype = wp_check_filetype( $path );
 		$result   = save_without_conversion(
 			function () use ( $editor, $path, $filetype ) {

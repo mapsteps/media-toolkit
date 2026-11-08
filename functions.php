@@ -95,6 +95,100 @@ function is_resizable_image( $attachment_id ) {
 }
 
 /**
+ * Estimate the quality a JPEG was saved with, from its quantization table (like ImageMagick does).
+ *
+ * @param string $path The image path.
+ * @return int The quality (1-100) or 0 if unknown, e.g. for other formats.
+ */
+function get_jpeg_quality( $path ) {
+
+	$filetype = wp_check_filetype( $path );
+
+	if ( 'image/jpeg' !== $filetype['type'] || ! is_readable( $path ) ) {
+		return 0;
+	}
+
+	// phpcs:disable WordPress.WP.AlternativeFunctions -- Reading a few bytes of the header, WP_Filesystem can't seek.
+	$handle = fopen( $path, 'rb' );
+
+	if ( ! $handle ) {
+		return 0;
+	}
+
+	$table = '';
+
+	// Walk the segments (skipping e.g. EXIF data with its preview image) until the quantization table.
+	if ( "\xFF\xD8" === fread( $handle, 2 ) ) {
+		while ( ! feof( $handle ) ) {
+			$header = fread( $handle, 4 );
+
+			if ( 4 !== strlen( $header ) || "\xFF" !== $header[0] ) {
+				break;
+			}
+
+			$marker  = ord( $header[1] );
+			$segment = ( ord( $header[2] ) << 8 ) + ord( $header[3] ) - 2;
+
+			if ( 0xDB === $marker ) {
+				$table = fread( $handle, 65 );
+				break;
+			}
+
+			// Start of the image data: no table found.
+			if ( 0xDA === $marker || $segment < 0 ) {
+				break;
+			}
+
+			fseek( $handle, $segment, SEEK_CUR );
+		}
+	}
+
+	fclose( $handle );
+	// phpcs:enable
+
+	// Precision & table ID (1 byte), then 64 values. Only 8-bit tables.
+	if ( 65 !== strlen( $table ) || ( ord( $table[0] ) >> 4 ) !== 0 ) {
+		return 0;
+	}
+
+	// The standard luminance table (JPEG spec, Annex K), in zigzag order like in the file.
+	$standard = array( 16, 11, 12, 14, 12, 10, 16, 14, 13, 14, 18, 17, 16, 19, 24, 40, 26, 24, 22, 22, 24, 49, 35, 37, 29, 40, 58, 51, 61, 60, 57, 51, 56, 55, 64, 72, 92, 78, 64, 68, 87, 69, 55, 56, 80, 109, 81, 87, 95, 98, 103, 104, 103, 62, 77, 113, 121, 112, 100, 120, 92, 101, 103, 99 );
+
+	$sum = 0;
+
+	for ( $i = 1; $i <= 64; $i++ ) {
+		$sum += ord( $table[ $i ] );
+	}
+
+	$scale = $sum * 100 / array_sum( $standard );
+
+	if ( $scale <= 0 ) {
+		return 100;
+	}
+
+	$quality = $scale <= 100 ? ( 200 - $scale ) / 2 : 5000 / $scale;
+
+	return (int) max( 1, min( 100, round( $quality ) ) );
+
+}
+
+/**
+ * Don't save an image with a higher quality than it already has: it only adds bytes, not detail.
+ *
+ * @param \WP_Image_Editor $editor The image editor.
+ * @param string           $path   The path of the image that was loaded.
+ */
+function limit_quality( $editor, $path ) {
+
+	$quality = get_jpeg_quality( $path );
+
+	if ( $quality && $quality < $editor->get_quality() ) {
+		$editor->set_quality( $quality );
+	}
+
+}
+
+/**
  * Run an image save without any other format conversion, so files keep their name & format.
  *
  * @param callable $callback       The callback that saves the image.
