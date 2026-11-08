@@ -7,6 +7,8 @@
 
 namespace MediaToolkit;
 
+defined( 'ABSPATH' ) || die( "Can't access directly" );
+
 /**
  * The setup utility class.
  */
@@ -20,14 +22,16 @@ class MediaToolkitSetup {
 	private $settings = array();
 
 	/**
-	 * Check if we're on the Kirki settings page.
+	 * Check if we're on the Media Toolkit settings page.
 	 *
 	 * @return bool
 	 */
 	private function is_settings_page() {
-		$current_screen = get_current_screen();
 
-		return ( 'media_page_media-toolkit' === $current_screen->id ? true : false );
+		$current_screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+		return $current_screen && 'media_page_media-toolkit' === $current_screen->id;
+
 	}
 
 	/**
@@ -42,9 +46,7 @@ class MediaToolkitSetup {
 			return $classes;
 		}
 
-		$classes .= ' heatbox-admin has-header';
-
-		return $classes;
+		return $classes . ' heatbox-admin has-header';
 
 	}
 
@@ -58,7 +60,7 @@ class MediaToolkitSetup {
 		}
 
 		wp_enqueue_style( 'heatbox', MEDIA_TOOLKIT_PLUGIN_URL . '/assets/css/heatbox.css', array(), MEDIA_TOOLKIT_PLUGIN_VERSION );
-		wp_enqueue_style( 'media-toolkit-settings', MEDIA_TOOLKIT_PLUGIN_URL . '/assets/css/settings-page.css', array(), MEDIA_TOOLKIT_PLUGIN_VERSION );
+		wp_enqueue_style( 'media-toolkit-settings', MEDIA_TOOLKIT_PLUGIN_URL . '/assets/css/settings-page.css', array( 'heatbox' ), MEDIA_TOOLKIT_PLUGIN_VERSION );
 
 		wp_enqueue_script( 'media-toolkit', MEDIA_TOOLKIT_PLUGIN_URL . '/assets/js/settings-page.js', array(), MEDIA_TOOLKIT_PLUGIN_VERSION, true );
 
@@ -94,34 +96,60 @@ class MediaToolkitSetup {
 	 */
 	public function add_settings() {
 
-		$this->settings = get_option( 'mediatoolkit_settings', [] );
+		$this->settings = get_plugin_settings();
 
 		// Register settings.
-		register_setting( 'mediatoolkit-settings-group', 'mediatoolkit_settings' );
+		register_setting(
+			'mediatoolkit-settings-group',
+			'mediatoolkit_settings',
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( $this, 'sanitize_settings' ),
+			)
+		);
 
 		// Register sections.
-		add_settings_section( 'mediatoolkit-rename-section', __( 'Change filename structure', 'media-toolkit' ), '', 'mediatoolkit-rename-settings' );
-		add_settings_section( 'mediatoolkit-quality-section', __( 'Change image quality', 'media-toolkit' ), '', 'mediatoolkit-quality-settings' );
-		add_settings_section( 'mediatoolkit-replace-original-section', __( 'Max image size', 'media-toolkit' ), '', 'mediatoolkit-replace-original-settings' );
+		add_settings_section( 'mediatoolkit-rename-section', __( 'Change filename structure', 'media-toolkit' ), '__return_false', 'mediatoolkit-rename-settings' );
+		add_settings_section( 'mediatoolkit-quality-section', __( 'Change image quality', 'media-toolkit' ), '__return_false', 'mediatoolkit-quality-settings' );
+		add_settings_section( 'mediatoolkit-replace-original-section', __( 'Max image size', 'media-toolkit' ), '__return_false', 'mediatoolkit-replace-original-settings' );
 
-		// General fields.
-		add_settings_field( 'rename-uploaded-image', __( 'Filename structure', 'media-toolkit' ), array( $this, 'rename_uploaded_image_field' ), 'mediatoolkit-rename-settings', 'mediatoolkit-rename-section' );
-		add_settings_field( 'compression-quality', __( 'Quality', 'media-toolkit' ), array( $this, 'compression_quality_field' ), 'mediatoolkit-quality-settings', 'mediatoolkit-quality-section' );
+		// Fields.
+		add_settings_field( 'rename-uploaded-image', __( 'Filename structure', 'media-toolkit' ), array( $this, 'rename_uploaded_image_field' ), 'mediatoolkit-rename-settings', 'mediatoolkit-rename-section', array( 'label_for' => 'mediatoolkit_settings--rename-uploaded-image' ) );
+		add_settings_field( 'compression-quality', __( 'Quality', 'media-toolkit' ), array( $this, 'compression_quality_field' ), 'mediatoolkit-quality-settings', 'mediatoolkit-quality-section', array( 'label_for' => 'mediatoolkit_settings--compression-quality' ) );
+		add_settings_field( 'replace-original-image', __( 'Replace original images', 'media-toolkit' ), array( $this, 'replace_original_image_field' ), 'mediatoolkit-replace-original-settings', 'mediatoolkit-replace-original-section', array( 'label_for' => 'mediatoolkit_settings--replace-original-image' ) );
+		add_settings_field( 'image-max-dimension', __( 'Max image size', 'media-toolkit' ), array( $this, 'image_max_dimension_field' ), 'mediatoolkit-replace-original-settings', 'mediatoolkit-replace-original-section', array( 'label_for' => 'mediatoolkit_settings--image-max-dimension' ) );
 
-		$max_dimension_label = sprintf(
-			/* translators: %s: The max upload size. */
-			__( 'Max image size %1$s', 'media-toolkit' ),
-			'<div class="description">' . __( 'Define the max image size in px. Will apply to the "longer edge".', 'media-toolkit' ) . '</div>'
-		);
+	}
 
-		$replace_original_image_label = sprintf(
-			/* translators: %s: The max upload size. */
-			__( 'Replace original images %1$s', 'media-toolkit' ),
-			'<div class="description">' . __( 'Upon upload, this will downscale the original image to the threshold provided below.', 'media-toolkit' ) . '</div>'
-		);
+	/**
+	 * Sanitize the settings before they're saved.
+	 *
+	 * @param mixed $input The submitted values.
+	 * @return array
+	 */
+	public function sanitize_settings( $input ) {
 
-		add_settings_field( 'replace-original-image', $replace_original_image_label, array( $this, 'replace_original_image_field' ), 'mediatoolkit-replace-original-settings', 'mediatoolkit-replace-original-section' );
-		add_settings_field( 'image-max-dimension', $max_dimension_label, array( $this, 'image_max_dimension_field' ), 'mediatoolkit-replace-original-settings', 'mediatoolkit-replace-original-section' );
+		$input    = is_array( $input ) ? $input : array();
+		$settings = array();
+
+		if ( isset( $input['image_rename_format'] ) ) {
+			$settings['image_rename_format'] = sanitize_text_field( $input['image_rename_format'] );
+		}
+
+		// Empty means WordPress' default quality.
+		if ( isset( $input['compression_quality'] ) && is_numeric( $input['compression_quality'] ) ) {
+			$settings['compression_quality'] = min( 100, max( 1, absint( $input['compression_quality'] ) ) );
+		}
+
+		if ( ! empty( $input['replace_original_image'] ) ) {
+			$settings['replace_original_image'] = 1;
+		}
+
+		if ( ! empty( $input['image_max_dimension'] ) && absint( $input['image_max_dimension'] ) ) {
+			$settings['image_max_dimension'] = absint( $input['image_max_dimension'] );
+		}
+
+		return $settings;
 
 	}
 

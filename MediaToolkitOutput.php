@@ -7,31 +7,39 @@
 
 namespace MediaToolkit;
 
+defined( 'ABSPATH' ) || die( "Can't access directly" );
+
 /**
  * The output utility class.
  */
 class MediaToolkitOutput {
 
 	/**
-	 * Modify attachment filename.
+	 * Rename uploaded images based on the filename structure setting.
 	 *
 	 * @param array $file The file info array.
-	 * @return string The file info array.
+	 * @return array The file info array.
 	 */
 	public function modify_attachment_filename( $file ) {
 
-		$settings      = get_option( 'mediatoolkit_settings', [] );
+		$settings      = get_plugin_settings();
 		$rename_format = isset( $settings['image_rename_format'] ) ? $settings['image_rename_format'] : '';
 
-		if ( ! $rename_format ) {
+		if ( ! $rename_format || empty( $file['name'] ) ) {
+			return $file;
+		}
+
+		// Only rename images.
+		$filetype = wp_check_filetype( $file['name'] );
+
+		if ( empty( $filetype['type'] ) || 0 !== strpos( $filetype['type'], 'image/' ) ) {
 			return $file;
 		}
 
 		$current_user = wp_get_current_user();
 
-		if ( $current_user && property_exists( $current_user, 'ID' ) ) {
-			$first_name = $current_user->first_name;
-			$first_name = empty( $first_name ) ? $current_user->display_name : $first_name;
+		if ( $current_user->exists() ) {
+			$first_name = $current_user->first_name ? $current_user->first_name : $current_user->display_name;
 			$last_name  = $current_user->last_name;
 			$full_name  = $first_name . ' ' . $last_name;
 		} else {
@@ -44,29 +52,37 @@ class MediaToolkitOutput {
 		$ext  = empty( $info['extension'] ) ? '' : '.' . $info['extension'];
 
 		$original_filename = basename( $file['name'], $ext );
-		$upload_timestamp  = strtotime( 'now' );
 
-		$upload_date = current_time( 'Y-m-d' );
-		$unique_id   = uniqid();
+		$filename = str_ireplace(
+			array(
+				'{author_first_name}',
+				'{author_last_name}',
+				'{author_full_name}',
+				'{original_file_name}',
+				'{upload_timestamp}',
+				'{upload_date}',
+				'{random_id}',
+			),
+			array(
+				$first_name,
+				$last_name,
+				$full_name,
+				$original_filename,
+				time(),
+				current_time( 'Y-m-d' ),
+				uniqid(),
+			),
+			sanitize_text_field( $rename_format )
+		);
 
-		$filename = sanitize_text_field( $rename_format );
-		$filename = str_ireplace( '{author_first_name}', $first_name, $filename );
-		$filename = str_ireplace( '{author_last_name}', $last_name, $filename );
-		$filename = str_ireplace( '{author_full_name}', $full_name, $filename );
-		$filename = str_ireplace( '{original_file_name}', $original_filename, $filename );
-		$filename = str_ireplace( '{upload_timestamp}', $upload_timestamp, $filename );
-		$filename = str_ireplace( '{upload_date}', $upload_date, $filename );
-		$filename = str_ireplace( '{random_id}', $unique_id, $filename );
+		$filename = sanitize_title( strtolower( trim( $filename ) ) );
 
-		// Sanitize the file name.
-		$filename = trim( $filename );
-		$filename = strtolower( $filename );
-		$filename = str_replace( ' ', '-', $filename );
-		$filename = sanitize_title( $filename );
-		$filename = $filename . $ext;
-		$filename = apply_filters( 'mediatoolkit_attachment_filename', $filename );
+		// Keep the original name if nothing is left of the new one.
+		if ( '' === $filename ) {
+			return $file;
+		}
 
-		$file['name'] = $filename;
+		$file['name'] = apply_filters( 'mediatoolkit_attachment_filename', $filename . $ext );
 
 		return $file;
 
@@ -75,79 +91,65 @@ class MediaToolkitOutput {
 	/**
 	 * Set compression quality.
 	 *
-	 * @param int    $quality The current compression quality.
-	 * @param string $mime_type The mime type.
-	 *
+	 * @param int $quality The current compression quality.
 	 * @return int
 	 */
-	public function set_compression_quality( $quality, $mime_type ) {
+	public function set_compression_quality( $quality ) {
 
-		$settings    = get_option( 'mediatoolkit_settings', [] );
+		$settings    = get_plugin_settings();
 		$new_quality = isset( $settings['compression_quality'] ) ? absint( $settings['compression_quality'] ) : 0;
 
-		if ( empty( $new_quality ) ) {
+		if ( ! $new_quality ) {
 			return $quality;
 		}
 
-		return $new_quality;
+		return min( 100, $new_quality );
 
 	}
 
 	/**
-	 * Replace the original uploaded image with custom-defined size.
-	 * Please be aware that the image exif data will be removed.
+	 * Replace the original uploaded image with a downscaled version.
+	 * The image's EXIF data will be removed.
 	 *
-	 * We don't hook into `wp_handle_upload` because it runs before images resizing.
-	 * Instead, we hook it into `wp_generate_attachment_metadata` action.
-	 * This way, the other resized images won't be affected.
-	 *
-	 * Thanks to answers in these links, it helps us a lot:
+	 * This runs on `wp_generate_attachment_metadata` instead of `wp_handle_upload`,
+	 * so the sub-sizes are already generated from the full-quality original.
 	 *
 	 * @see https://wordpress.stackexchange.com/questions/224536/how-to-reduce-original-image-quality-on-upload
 	 * @see https://wordpress.stackexchange.com/questions/76602/how-can-you-set-maximum-width-for-original-images
 	 *
-	 * After following those links, the best way to implement it is to also look at the sources:
-	 * @see https://github.com/WordPress/WordPress/blob/be6a91bf581296ce67acf242f9e92e940c908003/wp-admin/includes/media.php
-	 * @see https://github.com/WordPress/WordPress/blob/be6a91bf581296ce67acf242f9e92e940c908003/wp-admin/includes/image.php
-	 *
 	 * @param array  $metadata      An array of attachment meta data.
 	 * @param int    $attachment_id Current attachment ID.
-	 * @param string $context       Additional context. Can be 'create' when metadata was initially created for new attachment
-	 *                              or 'update' when the metadata was updated.
+	 * @param string $context       'create' for a new attachment, 'update' when the metadata was updated.
+	 *
+	 * @return array
 	 */
-	public function replace_original_image( $metadata, $attachment_id, $context ) {
+	public function replace_original_image( $metadata, $attachment_id, $context = 'create' ) {
 
-		// Stop if the context is not 'create'.
-		if ( 'create' !== $context ) {
+		if ( 'create' !== $context || ! is_array( $metadata ) ) {
 			return $metadata;
 		}
 
-		$settings = get_option( 'mediatoolkit_settings', [] );
-		$enabled  = isset( $settings['replace_original_image'] ) ? absint( $settings['replace_original_image'] ) : 0;
-
-		if ( ! $enabled ) {
-			return $metadata;
-		}
-
+		$settings      = get_plugin_settings();
+		$enabled       = ! empty( $settings['replace_original_image'] );
 		$max_dimension = isset( $settings['image_max_dimension'] ) ? absint( $settings['image_max_dimension'] ) : 0;
 
-		// Stop if the max dimension is not set.
-		if ( empty( $max_dimension ) ) {
+		if ( ! $enabled || ! $max_dimension ) {
+			return $metadata;
+		}
+
+		$mime_type = get_post_mime_type( $attachment_id );
+
+		if ( ! $mime_type || 0 !== strpos( $mime_type, 'image/' ) ) {
 			return $metadata;
 		}
 
 		/**
-		 * If `big_image_size_threshold` is enabled, the real original image will stay
-		 * but the "full" size will be scaled (the filename will have "-scaled" suffix).
-		 *
-		 * That's why we should use `wp_get_original_image_path` instead of `get_attached_file`.
-		 * Because `get_attached_file` can return the scaled image path.
+		 * If the image was scaled or rotated, the real original stays next to the "full" size.
+		 * `wp_get_original_image_path` returns that original, `get_attached_file` would return the "full" size.
 		 */
 		$image_path = wp_get_original_image_path( $attachment_id );
-		$mime_type  = get_post_mime_type( $attachment_id );
 
-		// Stop if the mime type is not an image.
-		if ( ! preg_match( '!^image/!', $mime_type ) ) {
+		if ( ! $image_path || ! file_exists( $image_path ) ) {
 			return $metadata;
 		}
 
@@ -157,37 +159,28 @@ class MediaToolkitOutput {
 			return $metadata;
 		}
 
-		/**
-		 * Number of compression quality percentage.
-		 *
-		 * @var int $quality_target Compression quality of the new original image.
-		 */
-		$quality_target = isset( $settings['compression_quality'] ) ? absint( $settings['compression_quality'] ) : 0;
-
-		if ( $quality_target ) {
-			// Set the new compression quality.
-			$result = $editor->set_quality( $quality_target );
-
-			if ( is_wp_error( $result ) ) {
-				return $metadata;
-			}
+		// Smaller images return an error here and stay as they are.
+		if ( is_wp_error( $editor->resize( $max_dimension, $max_dimension, false ) ) ) {
+			return $metadata;
 		}
 
-		// Resize the image.
-		$result = $editor->resize( $max_dimension, $max_dimension, false );
+		$result = $editor->save( $image_path, $mime_type );
 
 		if ( is_wp_error( $result ) ) {
 			return $metadata;
 		}
 
-		// Quality & sizes are set, now save it.
-		$result = $editor->save( $image_path, $mime_type );
+		// The original is the "full" size, so its dimensions & file size changed.
+		if ( empty( $metadata['original_image'] ) ) {
+			$metadata['width']  = $result['width'];
+			$metadata['height'] = $result['height'];
 
-		// If image is saved, let's update the necessary metadata.
-		if ( ! is_wp_error( $result ) ) {
-			// Might be useful to update some metadata.
-			do_action( 'mediatoolkit_after_replace_original_image', $attachment_id, $metadata );
+			if ( isset( $metadata['filesize'] ) ) {
+				$metadata['filesize'] = wp_filesize( $image_path );
+			}
 		}
+
+		do_action( 'mediatoolkit_after_replace_original_image', $attachment_id, $metadata );
 
 		return $metadata;
 

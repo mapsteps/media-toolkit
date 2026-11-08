@@ -2,22 +2,20 @@
 /**
  * Media Toolkit's functions.
  *
- * The intention to make these functions are
- * to make it possible to deregister the plugin's hook without using singleton pattern.
+ * The hooks call plain functions so they can be removed without a singleton.
  *
  * @package MediaToolkit
  */
 
 namespace MediaToolkit;
 
-use MediaToolkit\MediaToolkitSetup;
+defined( 'ABSPATH' ) || die( "Can't access directly" );
 
 /**
  * Setup the plugin's functionalities.
  */
 function setup() {
 
-	add_action( 'init', '\MediaToolkit\setup_text_domain' );
 	add_action( 'admin_menu', '\MediaToolkit\setup_submenu_page' );
 	add_action( 'admin_enqueue_scripts', '\MediaToolkit\enqueue_admin_scripts' );
 	add_filter( 'admin_body_class', '\MediaToolkit\setup_admin_body_class' );
@@ -31,19 +29,23 @@ function setup() {
  */
 function output() {
 
-	add_action( 'big_image_size_threshold', '\MediaToolkit\change_big_image_threshold', 10000, 1 );
+	add_filter( 'big_image_size_threshold', '\MediaToolkit\change_big_image_threshold', 10000 );
 	add_filter( 'wp_handle_upload_prefilter', '\MediaToolkit\modify_attachment_filename' );
-	add_filter( 'wp_editor_set_quality', '\MediaToolkit\set_compression_quality', 10, 2 );
-	add_action( 'wp_generate_attachment_metadata', '\MediaToolkit\replace_original_image', 10, 3 );
+	add_filter( 'wp_editor_set_quality', '\MediaToolkit\set_compression_quality' );
+	add_filter( 'wp_generate_attachment_metadata', '\MediaToolkit\replace_original_image', 10, 3 );
 
 }
 
 /**
- * Setup textdomain.
+ * Get the plugin settings.
+ *
+ * @return array
  */
-function setup_text_domain() {
+function get_plugin_settings() {
 
-	load_plugin_textdomain( 'media-toolkit', false, MEDIA_TOOLKIT_PLUGIN_DIR . '/languages' );
+	$settings = get_option( 'mediatoolkit_settings', array() );
+
+	return is_array( $settings ) ? $settings : array();
 
 }
 
@@ -55,7 +57,7 @@ function setup_text_domain() {
  */
 function plugin_action_links( $links ) {
 
-	$settings = array( '<a href="' . admin_url( 'upload.php?page=media-toolkit' ) . '">' . __( 'Settings', 'media-toolkit' ) . '</a>' );
+	$settings = array( '<a href="' . esc_url( admin_url( 'upload.php?page=media-toolkit' ) ) . '">' . esc_html__( 'Settings', 'media-toolkit' ) . '</a>' );
 
 	return array_merge( $settings, $links );
 
@@ -107,18 +109,18 @@ function setup_settings() {
 /**
  * Disable big image threshold when the original image is being replaced.
  *
- * @param int $threshold The current threshold.
- * @return int|bool
+ * @param int|false $threshold The current threshold.
+ * @return int|false
  */
 function change_big_image_threshold( $threshold ) {
 
-	$settings = get_option( 'mediatoolkit_settings', [] );
+	$settings = get_plugin_settings();
 
-	$replace_original = isset( $settings['replace_original_image'] ) ? absint( $settings['replace_original_image'] ) : 0;
+	$replace_original = ! empty( $settings['replace_original_image'] );
 	$max_dimension    = isset( $settings['image_max_dimension'] ) ? absint( $settings['image_max_dimension'] ) : 0;
 
 	// Disable the threshold if the original image is being replaced.
-	if ( $replace_original && ! empty( $max_dimension ) ) {
+	if ( $replace_original && $max_dimension ) {
 		return false;
 	}
 
@@ -130,7 +132,7 @@ function change_big_image_threshold( $threshold ) {
  * Modify attachment filename.
  *
  * @param array $file The file info array.
- * @return string The file info array.
+ * @return array The file info array.
  */
 function modify_attachment_filename( $file ) {
 
@@ -142,15 +144,13 @@ function modify_attachment_filename( $file ) {
 /**
  * Set compression quality.
  *
- * @param int    $quality The current compression quality.
- * @param string $mime_type The mime type.
- *
+ * @param int $quality The current compression quality.
  * @return int
  */
-function set_compression_quality( $quality, $mime_type ) {
+function set_compression_quality( $quality ) {
 
 	$instance = new MediaToolkitOutput();
-	return $instance->set_compression_quality( $quality, $mime_type );
+	return $instance->set_compression_quality( $quality );
 
 }
 
@@ -163,7 +163,7 @@ function set_compression_quality( $quality, $mime_type ) {
  *
  * @return array
  */
-function replace_original_image( $metadata, $attachment_id, $context ) {
+function replace_original_image( $metadata, $attachment_id, $context = 'create' ) {
 
 	$instance = new MediaToolkitOutput();
 	return $instance->replace_original_image( $metadata, $attachment_id, $context );

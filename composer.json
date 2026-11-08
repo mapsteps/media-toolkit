@@ -1,19 +1,18 @@
 {
-    "name": "mapsteps/media-toolkit",
-    "description": "Toolkit for media in WordPress",
-    "type": "project",
-    "license": "GPL-3.0-or-later",
-    "autoload": {
-        "psr-4": {
-            "MediaToolkit\\Module\\": "modules/",
-            "MediaToolkit\\": ""
-        }
-    },
-    "authors": [
-        {
-            "name": "David Vongries"
-        }
-    ],
-    "minimum-stability": "dev",
-    "require": {}
+	"name": "mapsteps/media-toolkit",
+	"description": "Media Toolkit – rename uploads, set the image quality and downscale huge originals in WordPress.",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"require-dev": {
+		"wp-coding-standards/wpcs": "^3.1"
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	},
+	"scripts": {
+		"lint": "phpcs --standard=phpcs.xml --exclude=Generic.Files.LineEndings .",
+		"fix": "phpcbf --standard=phpcs.xml --exclude=Generic.Files.LineEndings ."
+	}
 }
