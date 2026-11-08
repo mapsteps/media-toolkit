@@ -164,49 +164,14 @@ class MediaToolkitOutput {
 
 		limit_quality( $editor, $path );
 
-		$filetype  = wp_check_filetype( $path );
-		$old_bytes = (int) filesize( $path );
-		$tmp_path  = dirname( $path ) . '/' . pathinfo( $path, PATHINFO_FILENAME ) . '-mediatoolkit-tmp.' . pathinfo( $path, PATHINFO_EXTENSION );
-		$lossy     = in_array( $filetype['type'], array( 'image/jpeg', 'image/webp', 'image/avif' ), true );
-
-		/*
-		 * Fewer pixels must give a smaller file. If it's bigger, the image was saved with a lower quality
-		 * than the current setting (WebP & AVIF don't tell us theirs), so lower the quality step by step.
-		 */
-		do {
-			$result = save_without_conversion(
-				function () use ( $editor, $tmp_path, $filetype ) {
-					return $editor->save( $tmp_path, $filetype['type'] );
-				}
-			);
-
-			if ( is_wp_error( $result ) ) {
-				wp_delete_file( $tmp_path );
-				return false;
+		$filetype = wp_check_filetype( $path );
+		$result   = save_without_conversion(
+			function () use ( $editor, $path, $filetype ) {
+				return $editor->save( $path, $filetype['type'] );
 			}
+		);
 
-			clearstatcache();
-
-			$quality = $editor->get_quality();
-			$retry   = $lossy && (int) filesize( $tmp_path ) >= $old_bytes && $quality > 50;
-
-			if ( $retry ) {
-				$editor->set_quality( max( 50, $quality - 10 ) );
-			}
-		} while ( $retry );
-
-		// Replace the image with the downscaled one.
-		if ( ! copy( $tmp_path, $path ) ) {
-			wp_delete_file( $tmp_path );
-			return false;
-		}
-
-		wp_delete_file( $tmp_path );
-
-		$result['path'] = $path;
-		$result['file'] = wp_basename( $path );
-
-		return $result;
+		return is_wp_error( $result ) ? false : $result;
 
 	}
 
