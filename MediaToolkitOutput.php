@@ -276,8 +276,42 @@ class MediaToolkitOutput {
 		}
 
 		$metadata = $this->downscale_attachment( $attachment_id, $metadata, $max_dimension );
+		$metadata = $this->remove_original( $attachment_id, $metadata );
 
 		do_action( 'mediatoolkit_after_replace_original_image', $attachment_id, $metadata );
+
+		return $metadata;
+
+	}
+
+	/**
+	 * Remove the original upload WordPress keeps next to the "full" size (e.g. the JPEG of a WebP image,
+	 * or the unrotated photo). With "Limit image size", the original isn't kept as a backup.
+	 *
+	 * Only call this after the image sizes were created, they're made from the original.
+	 *
+	 * @param int   $attachment_id The attachment ID.
+	 * @param array $metadata      The attachment metadata.
+	 *
+	 * @return array The updated metadata.
+	 */
+	public function remove_original( $attachment_id, $metadata ) {
+
+		if ( empty( $metadata['original_image'] ) ) {
+			return $metadata;
+		}
+
+		$full_path     = get_attached_file( $attachment_id );
+		$original_path = path_join( dirname( $full_path ), wp_basename( $metadata['original_image'] ) );
+
+		// Never delete the image itself.
+		if ( $original_path !== $full_path && file_exists( $original_path ) ) {
+			wp_delete_file( $original_path );
+		}
+
+		if ( ! file_exists( $original_path ) ) {
+			unset( $metadata['original_image'] );
+		}
 
 		return $metadata;
 

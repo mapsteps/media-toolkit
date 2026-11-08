@@ -120,10 +120,11 @@ class MediaToolkitBulk {
 	 * @param string $full_path     The path of the "full" size.
 	 * @param string $original_path The path of the original image.
 	 * @param int    $attachment_id The attachment ID.
+	 * @param string $size_base     The filename the existing sizes are named after, e.g. "photo" for "photo-300x200.jpg".
 	 *
 	 * @return array The editor (or WP_Error) & the source path.
 	 */
-	private function get_resize_editor( $full_path, $original_path, $attachment_id ) {
+	private function get_resize_editor( $full_path, $original_path, $attachment_id, $size_base = '' ) {
 
 		if ( $original_path && $original_path !== $full_path && file_exists( $original_path ) ) {
 			$editor    = wp_get_image_editor( $original_path );
@@ -141,10 +142,28 @@ class MediaToolkitBulk {
 			}
 		}
 
-		$source = $this->get_resize_source( $full_path, $original_path, $attachment_id );
+		$source = $this->get_resize_source( $full_path, $original_path, $attachment_id, $size_base );
 		$editor = $source ? wp_get_image_editor( $source ) : new \WP_Error( 'mediatoolkit_source', 'The image could not be copied.' );
 
 		return array( $editor, $source );
+
+	}
+
+	/**
+	 * Get the filename the existing sizes are named after, e.g. "photo" for "photo-300x200.jpg".
+	 *
+	 * @param array $old_sizes The image sizes from the metadata.
+	 * @return string The name or an empty string if there are no sizes.
+	 */
+	private function get_size_base( $old_sizes ) {
+
+		foreach ( $old_sizes as $size ) {
+			if ( ! empty( $size['file'] ) && preg_match( '/^(.+)-\d+x\d+\.[a-z0-9]+$/i', wp_basename( $size['file'] ), $matches ) ) {
+				return $matches[1];
+			}
+		}
+
+		return '';
 
 	}
 
@@ -153,22 +172,26 @@ class MediaToolkitBulk {
 	 *
 	 * WordPress names the sizes after the original upload ("photo-300x200.jpg"), even if the "full" size
 	 * is "photo-scaled.jpg", "photo-rotated.jpg" or "photo.webp". To keep the same filenames, the "full" size
-	 * is copied to a temporary folder under the original's name, with the format of the "full" size.
+	 * is copied to a temporary folder under that name, with the format of the "full" size.
+	 * The name comes from the existing sizes, so it also works after the original was removed.
 	 *
 	 * @param string $full_path     The path of the "full" size.
 	 * @param string $original_path The path of the original image.
 	 * @param int    $attachment_id The attachment ID.
+	 * @param string $size_base     The filename the existing sizes are named after.
 	 *
 	 * @return string|false The source path or false on failure.
 	 */
-	private function get_resize_source( $full_path, $original_path, $attachment_id ) {
+	private function get_resize_source( $full_path, $original_path, $attachment_id, $size_base = '' ) {
 
-		if ( ! $original_path || $original_path === $full_path ) {
+		$base = $size_base ? $size_base : pathinfo( (string) $original_path, PATHINFO_FILENAME );
+
+		if ( ! $base || pathinfo( $full_path, PATHINFO_FILENAME ) === $base ) {
 			return $full_path;
 		}
 
 		$tmp_dir = dirname( $full_path ) . '/mediatoolkit-tmp-' . absint( $attachment_id );
-		$source  = $tmp_dir . '/' . pathinfo( $original_path, PATHINFO_FILENAME ) . '.' . pathinfo( $full_path, PATHINFO_EXTENSION );
+		$source  = $tmp_dir . '/' . $base . '.' . pathinfo( $full_path, PATHINFO_EXTENSION );
 
 		if ( ! wp_mkdir_p( $tmp_dir ) || ! copy( $full_path, $source ) ) {
 			return false;
@@ -435,7 +458,7 @@ class MediaToolkitBulk {
 		$sizes     = apply_filters( 'intermediate_image_sizes_advanced', wp_get_registered_image_subsizes(), $metadata, $attachment_id );
 		$old_sizes = isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ? $metadata['sizes'] : array();
 
-		list( $editor, $source ) = $this->get_resize_editor( $full_path, $original_path, $attachment_id );
+		list( $editor, $source ) = $this->get_resize_editor( $full_path, $original_path, $attachment_id, $this->get_size_base( $old_sizes ) );
 
 		if ( is_wp_error( $editor ) ) {
 			$this->remove_resize_source( $source, $full_path );
@@ -487,6 +510,11 @@ class MediaToolkitBulk {
 					$metadata['filesize'] = wp_filesize( $full_path );
 				}
 			}
+		}
+
+		// With "Limit image size", the original isn't kept as a backup (the sizes are already made from it).
+		if ( $max_dimension ) {
+			$metadata = $output->remove_original( $attachment_id, $metadata );
 		}
 
 		wp_update_attachment_metadata( $attachment_id, $metadata );
