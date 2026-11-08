@@ -59,15 +59,25 @@ class MediaToolkitBulk {
 		check_ajax_referer( 'mediatoolkit_bulk', 'nonce' );
 		$this->check_capability();
 
+		// Finish the batch even if the visitor leaves the page, so no image is left half-done.
+		ignore_user_abort( true );
+
 		$ids     = isset( $_POST['ids'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ids'] ) ) : array();
 		$results = array(
 			'optimized' => 0,
 			'skipped'   => 0,
 			'failed'    => 0,
+			'images'    => array(),
 		);
 
 		foreach ( array_slice( array_filter( $ids ), 0, 10 ) as $id ) {
-			++$results[ $this->optimize( $id ) ];
+			$result = $this->optimize( $id );
+
+			++$results[ $result['status'] ];
+
+			if ( 'optimized' === $result['status'] ) {
+				$results['images'][] = $result;
+			}
 		}
 
 		wp_send_json_success( $results );
@@ -75,23 +85,83 @@ class MediaToolkitBulk {
 	}
 
 	/**
+	 * Get the files of an attachment: the "full" size, the original & all image sizes.
+	 *
+	 * @param string $full_path     The path of the "full" size.
+	 * @param string $original_path The path of the original image.
+	 * @param array  $metadata      The attachment metadata.
+	 *
+	 * @return array The paths.
+	 */
+	private function get_files( $full_path, $original_path, $metadata ) {
+
+		$dir   = dirname( $full_path );
+		$files = array( $full_path, $original_path );
+
+		if ( ! empty( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ) {
+			foreach ( $metadata['sizes'] as $size ) {
+				if ( ! empty( $size['file'] ) ) {
+					$files[] = $dir . '/' . wp_basename( $size['file'] );
+				}
+			}
+		}
+
+		return array_unique( array_filter( $files ) );
+
+	}
+
+	/**
+	 * Get the total size of files in bytes.
+	 *
+	 * @param array $files The paths.
+	 * @return int
+	 */
+	private function get_bytes( $files ) {
+
+		clearstatcache();
+
+		$bytes = 0;
+
+		foreach ( $files as $file ) {
+			if ( file_exists( $file ) ) {
+				$bytes += (int) filesize( $file );
+			}
+		}
+
+		return $bytes;
+
+	}
+
+	/**
 	 * Downscale an image to the max image size & re-create its sizes with the current quality.
 	 *
 	 * @param int $attachment_id The attachment ID.
-	 * @return string "optimized", "skipped" or "failed".
+	 *
+	 * @return array {
+	 *     @type string $status "optimized", "skipped" or "failed".
+	 *     Optimized images also contain the ID, title, thumbnail URL and their size before & after.
+	 * }
 	 */
 	public function optimize( $attachment_id ) {
 
 		if ( ! is_resizable_image( $attachment_id ) ) {
-			return 'skipped';
+			return array( 'status' => 'skipped' );
 		}
 
 		$metadata  = wp_get_attachment_metadata( $attachment_id );
 		$full_path = get_attached_file( $attachment_id );
 
 		if ( ! is_array( $metadata ) || ! $full_path || ! file_exists( $full_path ) ) {
-			return 'failed';
+			return array( 'status' => 'failed' );
 		}
+
+		$original_path = wp_get_original_image_path( $attachment_id );
+		$files_before  = $this->get_files( $full_path, $original_path, $metadata );
+		$before        = array(
+			'width'  => isset( $metadata['width'] ) ? absint( $metadata['width'] ) : 0,
+			'height' => isset( $metadata['height'] ) ? absint( $metadata['height'] ) : 0,
+			'bytes'  => $this->get_bytes( $files_before ),
+		);
 
 		$output        = new MediaToolkitOutput();
 		$max_dimension = get_max_dimension();
@@ -100,11 +170,24 @@ class MediaToolkitBulk {
 			$metadata = $output->downscale_attachment( $attachment_id, $metadata, $max_dimension );
 		}
 
+		// Always store the real dimensions, this also repairs an earlier run that was interrupted.
+		$image_size = wp_getimagesize( $full_path );
+
+		if ( $image_size ) {
+			$metadata['width']  = $image_size[0];
+			$metadata['height'] = $image_size[1];
+
+			if ( isset( $metadata['filesize'] ) ) {
+				$metadata['filesize'] = wp_filesize( $full_path );
+			}
+		}
+
 		// Re-create the sizes from the "full" size, in the same format.
 		$editor = wp_get_image_editor( $full_path );
 
 		if ( is_wp_error( $editor ) ) {
-			return 'failed';
+			wp_update_attachment_metadata( $attachment_id, $metadata );
+			return array( 'status' => 'failed' );
 		}
 
 		$sizes = apply_filters( 'intermediate_image_sizes_advanced', wp_get_registered_image_subsizes(), $metadata, $attachment_id );
@@ -122,7 +205,22 @@ class MediaToolkitBulk {
 
 		wp_update_attachment_metadata( $attachment_id, $metadata );
 
-		return 'optimized';
+		// Files that are no longer used stay on the server, so they're counted too.
+		$files_after = array_unique( array_merge( $files_before, $this->get_files( $full_path, $original_path, $metadata ) ) );
+		$thumbnail   = wp_get_attachment_image_url( $attachment_id, 'thumbnail' );
+
+		return array(
+			'status'    => 'optimized',
+			'id'        => $attachment_id,
+			'title'     => get_the_title( $attachment_id ),
+			'thumbnail' => $thumbnail ? add_query_arg( 'mediatoolkit', time(), $thumbnail ) : '',
+			'before'    => $before,
+			'after'     => array(
+				'width'  => isset( $metadata['width'] ) ? absint( $metadata['width'] ) : 0,
+				'height' => isset( $metadata['height'] ) ? absint( $metadata['height'] ) : 0,
+				'bytes'  => $this->get_bytes( $files_after ),
+			),
+		);
 
 	}
 

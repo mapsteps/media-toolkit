@@ -31,7 +31,7 @@ Convert new JPEG & PNG uploads to WebP. WebP images are usually 25-35% smaller a
 Set a max width or height for new uploads. Larger images are downscaled on upload, so a 6000px photo straight from your camera doesn't stay on your server and no image is ever larger than your limit.
 
 = 🧹 Optimize existing images =
-Apply the max image size and image quality to the images you already uploaded, with one click. Filenames & URLs stay the same, so nothing on your site breaks.
+Apply the max image size and image quality to the images you already uploaded, with one click. Watch each image shrink, see how much disk space you saved, and resume if you closed the page. Filenames & URLs stay the same, so nothing on your site breaks.
 
 = 🪶 Lightweight =
 No bloat, no external services. Media Toolkit uses WordPress' own image editor.
@@ -56,7 +56,7 @@ Go to *Media → Media Toolkit*.
 
 **Max image size:** enable *Limit image size* and enter the max width or height in pixels. New uploads that are larger are downscaled on upload, and WordPress doesn't create any image sizes larger than that. The full-size original is replaced, not kept as a backup.
 
-**Optimize existing images:** save your settings first, then click *Optimize existing images*. Images larger than the max image size are downscaled and all image sizes are re-created with your image quality. Files are overwritten in place, so please back up your uploads folder first. Existing images are not renamed or converted to WebP, because that would change their URLs.
+**Optimize existing images:** save your settings first, then click *Optimize existing images*. Images larger than the max image size are downscaled and all image sizes are re-created with your image quality. Files are overwritten in place, so please back up your uploads folder first. Keep the page open while it runs. If you leave, you can resume where it stopped. Existing images are not renamed or converted to WebP, because that would change their URLs.
 
 ---------
 
@@ -124,7 +124,7 @@ No. When the original image is replaced, its EXIF data is removed.
 == Changelog ==
 = 2.0 November 08, 2026 =
 * New: Convert new JPEG & PNG uploads to WebP
-* New: Optimize existing images (max image size & image quality)
+* New: Optimize existing images (max image size & image quality) with progress, saved disk space & resume
 * New: Refreshed settings page design
 * Fixed: Security improvements (settings are sanitized before they're saved)
 * Fixed: Image quality is limited to 1-100

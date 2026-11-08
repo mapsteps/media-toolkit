@@ -100,3 +100,94 @@
 .mediatk-bulk-metabox .mediatk-bulk-running[hidden] {
 	display: none;
 }
+
+.mediatk-bulk-metabox .mediatk-bulk-actions [hidden],
+.mediatk-bulk-metabox .mediatk-bulk-progress[hidden],
+.mediatk-bulk-metabox .mediatk-bulk-current[hidden] {
+	display: none;
+}
+
+/* Progress */
+.mediatk-bulk-progress {
+	margin-top: 20px;
+}
+
+.mediatk-progress {
+	height: 8px;
+	overflow: hidden;
+	background-color: var(--heatbox-surface);
+	border: 1px solid var(--heatbox-border);
+	border-radius: 999px;
+}
+
+.mediatk-progress-bar {
+	width: 0;
+	height: 100%;
+	background-color: var(--heatbox-accent);
+	border-radius: 999px;
+	transition: width 0.4s ease;
+}
+
+/* The image that was optimized last */
+.mediatk-bulk-current {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	margin-top: 16px;
+	padding: 12px;
+	background-color: var(--heatbox-surface);
+	border: 1px solid var(--heatbox-border);
+	border-radius: var(--heatbox-radius-small);
+}
+
+.mediatk-bulk-current-image {
+	flex-shrink: 0;
+	width: 64px;
+	height: 64px;
+	object-fit: cover;
+	border-radius: var(--heatbox-radius-small);
+	animation: mediatkSquash 0.5s ease;
+}
+
+.mediatk-bulk-current-info {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.mediatk-bulk-current-title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.mediatk-bulk-current-dimensions,
+.mediatk-bulk-current-bytes {
+	color: var(--heatbox-text-muted);
+}
+
+.mediatk-bulk-saved {
+	margin: 12px 0 0;
+	font-weight: 600;
+}
+
+@keyframes mediatkSquash {
+	from {
+		transform: scale(1.15);
+		opacity: 0.4;
+	}
+
+	to {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.mediatk-progress-bar,
+	.mediatk-bulk-current-image {
+		transition: none;
+		animation: none;
+	}
+}

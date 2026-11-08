@@ -22,10 +22,29 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 		</p>
 		<p class="mediatk-bulk-actions">
 			<button type="button" class="button mediatk-bulk-button"><?php esc_html_e( 'Optimize existing images', 'media-toolkit' ); ?></button>
+			<button type="button" class="button button-primary mediatk-bulk-resume" hidden><?php esc_html_e( 'Resume', 'media-toolkit' ); ?></button>
 			<span class="mediatk-bulk-status" role="status" aria-live="polite"></span>
 		</p>
+
+		<div class="mediatk-bulk-progress" hidden>
+			<div class="mediatk-progress" role="progressbar" aria-label="<?php esc_attr_e( 'Optimizing images', 'media-toolkit' ); ?>" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+				<div class="mediatk-progress-bar"></div>
+			</div>
+
+			<div class="mediatk-bulk-current" hidden>
+				<img class="mediatk-bulk-current-image" src="" alt="">
+				<div class="mediatk-bulk-current-info">
+					<strong class="mediatk-bulk-current-title"></strong>
+					<span class="mediatk-bulk-current-dimensions"></span>
+					<span class="mediatk-bulk-current-bytes"></span>
+				</div>
+			</div>
+
+			<p class="mediatk-bulk-saved"></p>
+		</div>
+
 		<p class="mediatk-bulk-running" hidden>
-			<?php esc_html_e( 'Please keep this page open until it\'s done. If you leave or reload the page, the process stops and you\'ll have to start it again.', 'media-toolkit' ); ?>
+			<?php esc_html_e( 'Please keep this page open until it\'s done. If you leave, you can resume where it stopped.', 'media-toolkit' ); ?>
 		</p>
 	</div>
 </div>
