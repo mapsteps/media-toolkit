@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Media Toolkit
  * Plugin URI: https://mapsteps.com
- * Description: Rename uploaded images, change the image quality and downscale huge original images in WordPress.
+ * Description: Bulk optimize your existing images, convert uploads to WebP, set a max image size & image quality and rename uploaded images.
  * Version: 2.0
  * Requires at least: 5.3
  * Requires PHP: 5.6
