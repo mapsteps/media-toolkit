@@ -363,7 +363,7 @@ span.mediatk-log-thumb {
 
 .mediatk-log-stats {
 	display: grid;
-	grid-template-columns: minmax(0, 190px) minmax(0, 170px);
+	grid-template-columns: 170px 170px;
 	gap: 24px;
 	margin-top: 4px;
 }
