@@ -222,6 +222,7 @@
 		void currentImage.offsetWidth;
 		currentImage.style.animation = '';
 		currentImage.src = image.thumbnail;
+		currentImage.hidden = !image.thumbnail;
 
 		var resized = before.width !== after.width || before.height !== after.height;
 		var smaller = before.bytes > after.bytes;
@@ -280,14 +281,32 @@
 						showImage(image);
 					});
 
+					failures = 0;
 					run.index++;
 					saveRun(run);
 
 					// Give each image a moment on screen and leave room for other requests.
 					return wait(Math.max(0, minDelay - (Date.now() - startedAt)));
 				})
+				.catch(function (err) {
+					failures++;
+
+					// Several failures in a row: probably the connection, stop so it can be resumed.
+					if (failures >= 3) throw err;
+
+					// Retry once, then count the image as failed and move on, so one broken image can't block the run.
+					if (failures === 2) {
+						run.totals.failed++;
+						run.index++;
+						saveRun(run);
+					}
+
+					return wait(1000);
+				})
 				.then(next);
 		}
+
+		var failures = 0;
 
 		return Promise.resolve(next())
 			.catch(function () {

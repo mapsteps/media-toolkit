@@ -111,6 +111,127 @@ class MediaToolkitBulk {
 	}
 
 	/**
+	 * Get the image editor to create the sizes with.
+	 *
+	 * Like WordPress, the sizes are created from the original upload (rotated by its EXIF data),
+	 * so they get the same filenames & dimensions as before. If the original can't be used
+	 * (e.g. it lost its rotation when it was downscaled), the "full" size is used instead.
+	 *
+	 * @param string $full_path     The path of the "full" size.
+	 * @param string $original_path The path of the original image.
+	 * @param int    $attachment_id The attachment ID.
+	 *
+	 * @return array The editor (or WP_Error) & the source path.
+	 */
+	private function get_resize_editor( $full_path, $original_path, $attachment_id ) {
+
+		if ( $original_path && $original_path !== $full_path && file_exists( $original_path ) ) {
+			$editor    = wp_get_image_editor( $original_path );
+			$full_size = wp_getimagesize( $full_path );
+
+			if ( ! is_wp_error( $editor ) && $full_size ) {
+				$editor->maybe_exif_rotate();
+
+				$size = $editor->get_size();
+
+				// Same aspect ratio means the same orientation as the "full" size.
+				if ( $size['height'] && $full_size[1] && abs( $size['width'] / $size['height'] - $full_size[0] / $full_size[1] ) < 0.01 ) {
+					return array( $editor, $original_path );
+				}
+			}
+		}
+
+		$source = $this->get_resize_source( $full_path, $original_path, $attachment_id );
+		$editor = $source ? wp_get_image_editor( $source ) : new \WP_Error( 'mediatoolkit_source', 'The image could not be copied.' );
+
+		return array( $editor, $source );
+
+	}
+
+	/**
+	 * Get a copy of the "full" size to create the sizes from.
+	 *
+	 * WordPress names the sizes after the original upload ("photo-300x200.jpg"), even if the "full" size
+	 * is "photo-scaled.jpg", "photo-rotated.jpg" or "photo.webp". To keep the same filenames, the "full" size
+	 * is copied to a temporary folder under the original's name, with the format of the "full" size.
+	 *
+	 * @param string $full_path     The path of the "full" size.
+	 * @param string $original_path The path of the original image.
+	 * @param int    $attachment_id The attachment ID.
+	 *
+	 * @return string|false The source path or false on failure.
+	 */
+	private function get_resize_source( $full_path, $original_path, $attachment_id ) {
+
+		if ( ! $original_path || $original_path === $full_path ) {
+			return $full_path;
+		}
+
+		$tmp_dir = dirname( $full_path ) . '/mediatoolkit-tmp-' . absint( $attachment_id );
+		$source  = $tmp_dir . '/' . pathinfo( $original_path, PATHINFO_FILENAME ) . '.' . pathinfo( $full_path, PATHINFO_EXTENSION );
+
+		if ( ! wp_mkdir_p( $tmp_dir ) || ! copy( $full_path, $source ) ) {
+			return false;
+		}
+
+		return $source;
+
+	}
+
+	/**
+	 * Remove the temporary source image & folder.
+	 *
+	 * @param string|false $source    The source path.
+	 * @param string       $full_path The path of the "full" size.
+	 */
+	private function remove_resize_source( $source, $full_path ) {
+
+		if ( ! $source || $source === $full_path || false === strpos( $source, '/mediatoolkit-tmp-' ) ) {
+			return;
+		}
+
+		$tmp_dir = dirname( $source );
+
+		foreach ( (array) glob( $tmp_dir . '/*' ) as $file ) {
+			wp_delete_file( $file );
+		}
+
+		if ( is_dir( $tmp_dir ) ) {
+			rmdir( $tmp_dir ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir
+		}
+
+	}
+
+	/**
+	 * Move the created sizes from the temporary folder next to the image.
+	 *
+	 * @param string|false $source    The source path.
+	 * @param string       $dir       The upload directory of the image.
+	 * @param array        $new_sizes The created image sizes.
+	 *
+	 * @return array The image sizes that were moved.
+	 */
+	private function move_sizes( $source, $dir, $new_sizes ) {
+
+		$tmp_dir = dirname( $source );
+
+		if ( $tmp_dir === $dir ) {
+			return $new_sizes;
+		}
+
+		foreach ( $new_sizes as $name => $size ) {
+			$file = wp_basename( $size['file'] );
+
+			if ( ! copy( $tmp_dir . '/' . $file, $dir . '/' . $file ) ) {
+				unset( $new_sizes[ $name ] );
+			}
+		}
+
+		return $new_sizes;
+
+	}
+
+	/**
 	 * Copy the existing image sizes, so they can be restored if the new ones are bigger.
 	 *
 	 * @param string $dir       The upload directory of the image.
@@ -245,24 +366,35 @@ class MediaToolkitBulk {
 			}
 		}
 
-		// Re-create the sizes from the "full" size, in the same format.
-		$editor = wp_get_image_editor( $full_path );
+		$dir       = dirname( $full_path );
+		$sizes     = apply_filters( 'intermediate_image_sizes_advanced', wp_get_registered_image_subsizes(), $metadata, $attachment_id );
+		$old_sizes = isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ? $metadata['sizes'] : array();
+
+		list( $editor, $source ) = $this->get_resize_editor( $full_path, $original_path, $attachment_id );
 
 		if ( is_wp_error( $editor ) ) {
+			$this->remove_resize_source( $source, $full_path );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			return array( 'status' => 'failed' );
 		}
 
-		$sizes     = apply_filters( 'intermediate_image_sizes_advanced', wp_get_registered_image_subsizes(), $metadata, $attachment_id );
-		$old_sizes = isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ? $metadata['sizes'] : array();
-		$dir       = dirname( $full_path );
-		$backups   = $this->backup_sizes( $dir, $old_sizes );
+		$backups = $this->backup_sizes( $dir, $old_sizes );
+
+		// The sizes get the format of the "full" size, e.g. WebP if the image was converted on upload.
+		$source_type = wp_check_filetype( $source );
+		$full_type   = wp_check_filetype( $full_path );
+		$formats     = $source_type['type'] !== $full_type['type'] ? array( $source_type['type'] => $full_type['type'] ) : array();
 
 		$new_sizes = save_without_conversion(
 			function () use ( $editor, $sizes ) {
 				return $editor->multi_resize( $sizes );
-			}
+			},
+			$formats
 		);
+
+		$new_sizes = $this->move_sizes( $source, $dir, $new_sizes );
+
+		$this->remove_resize_source( $source, $full_path );
 
 		$new_sizes = $this->keep_smaller_sizes( $dir, $new_sizes, $backups );
 

@@ -129,7 +129,7 @@ No. When the original image is replaced, its EXIF data is removed.
 * Fixed: Security improvements (settings are sanitized before they're saved)
 * Fixed: Image quality is limited to 1-100
 * Fixed: Wrong image dimensions & file size after the original image was replaced
-* Fixed: Image sizes larger than the max image size were still created
+* Fixed: Image sizes larger than the max image size were still created (also for portrait photos)
 * Fixed: Rotated photos kept a full-size copy when the max image size was set
 * Fixed: Animated GIFs lost their animation when the max image size was set
 * Fixed: Non-image files were renamed as well
