@@ -28,7 +28,7 @@ return function ( $settings ) {
 	/>
 
 	<p class="description" id="mediatoolkit-rename-description">
-		<?php esc_html_e( 'Rename uploaded images. Use the template tags from the sidebar. Leave empty to keep the original filename.', 'media-toolkit' ); ?>
+		<?php esc_html_e( 'Rename new image uploads. Other files like PDFs or videos keep their name. Use the template tags from the sidebar, or leave empty to keep the original filename.', 'media-toolkit' ); ?>
 	</p>
 
 	<?php
