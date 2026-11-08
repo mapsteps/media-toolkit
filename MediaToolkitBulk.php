@@ -474,6 +474,21 @@ class MediaToolkitBulk {
 		// Keep sizes that are no longer registered (e.g. from a previous theme). Old files are never deleted.
 		$metadata['sizes'] = array_merge( array_diff_key( $old_sizes, wp_get_registered_image_subsizes() ), $new_sizes );
 
+		// The "full" size wasn't downscaled: save it again with the quality setting (after the sizes, so they're made from the better image).
+		$downscaled = absint( $metadata['width'] ) !== $before['width'] || absint( $metadata['height'] ) !== $before['height'];
+
+		if ( ! $downscaled ) {
+			$recompressed = $output->recompress_image( $full_path, get_saved_quality( $attachment_id ) );
+
+			if ( $recompressed ) {
+				save_quality( $attachment_id, $recompressed['quality'] );
+
+				if ( isset( $metadata['filesize'] ) ) {
+					$metadata['filesize'] = wp_filesize( $full_path );
+				}
+			}
+		}
+
 		wp_update_attachment_metadata( $attachment_id, $metadata );
 
 		// Files that are no longer used stay on the server, so they're counted too.

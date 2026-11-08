@@ -82,13 +82,13 @@ If you like Media Toolkit, make sure to check out our other products:
 Yes. Your images keep their filenames & links, so nothing on your site breaks, and no files are deleted. The images are overwritten though, so please back up your uploads folder first.
 
 = What does "Optimize existing images" do? =
-Images larger than the max image size are downscaled, and all image sizes (thumbnails etc.) are created again with your image quality. Images are not renamed or converted to WebP, because that would change their links.
+Every image and all its sizes (thumbnails etc.) are saved again with your settings: downscaled if they're larger than the max image size, and saved with your image quality. An image is never saved with a higher quality than it already has, and never replaced by a bigger file. Images are not renamed or converted to WebP, because that would change their links. The original upload that WordPress keeps next to big or converted images is only changed by the max image size.
 
 = Do I have to keep the page open while it's optimizing? =
 Yes. If you close the page, the next time you open it you can resume where it stopped.
 
 = Will a higher quality setting make my existing images look better? =
-No. Detail that was lost when an image was saved can't be brought back, a higher quality only makes the file bigger. That's why Media Toolkit never saves an image with a higher quality than it already has. The exception are WebP & AVIF images uploaded before Media Toolkit was active, because these files don't tell their quality. If they get bigger, the results tell you.
+No. Detail that was lost when an image was saved can't be brought back, a higher quality only makes the file bigger. That's why Media Toolkit never saves an image with a higher quality than it already has. The only exception: WebP & AVIF images uploaded before Media Toolkit was active don't tell their quality. If the max image size makes them just a little smaller, they can end up with a bigger file. The results tell you if that happens.
 
 = Why couldn't an image be optimized? =
 The results list every image that couldn't be optimized, with the reason and what you can do about it. For example, the image file may be missing on your server, or your server may have run out of memory with a very large image.

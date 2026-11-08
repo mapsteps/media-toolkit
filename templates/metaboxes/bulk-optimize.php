@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 		<p class="description"><?php esc_html_e( 'Apply your saved settings to the images you already uploaded:', 'media-toolkit' ); ?></p>
 		<ul class="mediatk-bulk-list">
 			<li><?php esc_html_e( 'Images larger than the max image size are downscaled (if "Limit image size" is enabled).', 'media-toolkit' ); ?></li>
-			<li><?php esc_html_e( 'All image sizes (thumbnails etc.) are re-created with the quality set above.', 'media-toolkit' ); ?></li>
+			<li><?php esc_html_e( 'Images and all their sizes (thumbnails etc.) are saved again with the quality set above, but never with a higher quality than they already have, and never replaced by a bigger file.', 'media-toolkit' ); ?></li>
 			<li><?php esc_html_e( 'Filenames & URLs stay the same and no files are deleted. Images are not renamed or converted to WebP.', 'media-toolkit' ); ?></li>
 		</ul>
 		<p class="mediatk-bulk-warning">

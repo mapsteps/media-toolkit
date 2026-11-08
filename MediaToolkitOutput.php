@@ -183,6 +183,73 @@ class MediaToolkitOutput {
 	}
 
 	/**
+	 * Save an image again with the current quality setting, in place (same filename & format).
+	 *
+	 * Never with a higher quality than the image already has, and the image is only replaced
+	 * if the new file is smaller. The image's EXIF data will be removed.
+	 *
+	 * @param string $path          The image path.
+	 * @param int    $known_quality The quality the image was saved with, if known.
+	 *
+	 * @return array|false The saved image data (path, width, height, quality ...) or false if nothing was changed.
+	 */
+	public function recompress_image( $path, $known_quality = 0 ) {
+
+		$filetype = wp_check_filetype( (string) $path );
+
+		// Only lossy formats get smaller with a lower quality.
+		if ( ! $path || ! file_exists( $path ) || ! in_array( $filetype['type'], array( 'image/jpeg', 'image/webp', 'image/avif' ), true ) ) {
+			return false;
+		}
+
+		$editor = wp_get_image_editor( $path );
+
+		if ( is_wp_error( $editor ) ) {
+			return false;
+		}
+
+		limit_quality( $editor, $path, $known_quality );
+
+		$own_quality = $known_quality ? absint( $known_quality ) : get_jpeg_quality( $path );
+		$quality     = $editor->get_quality();
+
+		// Saving with the same quality again only loses detail.
+		if ( $own_quality && $quality >= $own_quality ) {
+			return false;
+		}
+
+		$tmp_path = dirname( $path ) . '/' . pathinfo( $path, PATHINFO_FILENAME ) . '-mediatoolkit-tmp.' . pathinfo( $path, PATHINFO_EXTENSION );
+
+		$result = save_without_conversion(
+			function () use ( $editor, $tmp_path, $filetype ) {
+				return $editor->save( $tmp_path, $filetype['type'] );
+			}
+		);
+
+		if ( is_wp_error( $result ) ) {
+			wp_delete_file( $tmp_path );
+			return false;
+		}
+
+		clearstatcache();
+
+		// Keep the image if the new one isn't smaller.
+		if ( (int) filesize( $tmp_path ) >= (int) filesize( $path ) || ! copy( $tmp_path, $path ) ) {
+			wp_delete_file( $tmp_path );
+			return false;
+		}
+
+		wp_delete_file( $tmp_path );
+
+		$result['path']    = $path;
+		$result['file']    = wp_basename( $path );
+		$result['quality'] = $quality;
+
+		return $result;
+
+	}
+
+	/**
 	 * Downscale new uploads to the max image size.
 	 *
 	 * This runs on `wp_generate_attachment_metadata` instead of `wp_handle_upload`,
