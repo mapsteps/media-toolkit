@@ -64,6 +64,8 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 
 			</form>
 
+			<?php require __DIR__ . '/metaboxes/bulk-optimize.php'; ?>
+
 		</div>
 
 		<div class="heatbox-sidebar">

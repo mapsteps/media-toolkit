@@ -25,6 +25,7 @@ define( 'MEDIA_TOOLKIT_PLUGIN_VERSION', '2.0' );
 
 require __DIR__ . '/MediaToolkitSetup.php';
 require __DIR__ . '/MediaToolkitOutput.php';
+require __DIR__ . '/MediaToolkitBulk.php';
 require __DIR__ . '/functions.php';
 
 \MediaToolkit\setup();

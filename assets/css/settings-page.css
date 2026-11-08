@@ -68,3 +68,26 @@
 		grid-template-columns: 1fr;
 	}
 }
+
+/* Bulk optimize */
+.mediatk-bulk-metabox .mediatk-bulk-list {
+	margin: 0 0 16px;
+	padding-inline-start: 20px;
+	list-style: disc;
+}
+
+.mediatk-bulk-metabox .mediatk-bulk-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 0;
+}
+
+.mediatk-bulk-metabox .mediatk-bulk-status {
+	color: var(--heatbox-text-muted);
+}
+
+.mediatk-settings-page .mediatk-bulk-metabox {
+	margin-top: 40px;
+}

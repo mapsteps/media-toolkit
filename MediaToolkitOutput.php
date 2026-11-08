@@ -108,14 +108,76 @@ class MediaToolkitOutput {
 	}
 
 	/**
-	 * Replace the original uploaded image with a downscaled version.
+	 * Convert new JPEG & PNG uploads to WebP.
+	 * WordPress saves the converted image as the "full" size and keeps the upload as the original.
+	 *
+	 * @param array $formats Mime type mappings (source => output).
+	 * @return array
+	 */
+	public function convert_to_webp( $formats ) {
+
+		$settings = get_plugin_settings();
+
+		if ( empty( $settings['convert_to_webp'] ) || ! webp_supported() ) {
+			return $formats;
+		}
+
+		$formats = is_array( $formats ) ? $formats : array();
+
+		$formats['image/jpeg'] = 'image/webp';
+		$formats['image/png']  = 'image/webp';
+
+		return $formats;
+
+	}
+
+	/**
+	 * Downscale an image file in place (same filename & format) if it's larger than the max dimension.
 	 * The image's EXIF data will be removed.
+	 *
+	 * @param string $path          The image path.
+	 * @param int    $max_dimension The max width or height.
+	 *
+	 * @return array|false The saved image data (path, width, height ...) or false if nothing was changed.
+	 */
+	public function downscale_image( $path, $max_dimension ) {
+
+		if ( ! $path || ! file_exists( $path ) ) {
+			return false;
+		}
+
+		$editor = wp_get_image_editor( $path );
+
+		if ( is_wp_error( $editor ) ) {
+			return false;
+		}
+
+		$size = $editor->get_size();
+
+		if ( $size['width'] <= $max_dimension && $size['height'] <= $max_dimension ) {
+			return false;
+		}
+
+		if ( is_wp_error( $editor->resize( $max_dimension, $max_dimension, false ) ) ) {
+			return false;
+		}
+
+		$filetype = wp_check_filetype( $path );
+		$result   = save_without_conversion(
+			function () use ( $editor, $path, $filetype ) {
+				return $editor->save( $path, $filetype['type'] );
+			}
+		);
+
+		return is_wp_error( $result ) ? false : $result;
+
+	}
+
+	/**
+	 * Downscale new uploads to the max image size.
 	 *
 	 * This runs on `wp_generate_attachment_metadata` instead of `wp_handle_upload`,
 	 * so the sub-sizes are already generated from the full-quality original.
-	 *
-	 * @see https://wordpress.stackexchange.com/questions/224536/how-to-reduce-original-image-quality-on-upload
-	 * @see https://wordpress.stackexchange.com/questions/76602/how-can-you-set-maximum-width-for-original-images
 	 *
 	 * @param array  $metadata      An array of attachment meta data.
 	 * @param int    $attachment_id Current attachment ID.
@@ -129,58 +191,51 @@ class MediaToolkitOutput {
 			return $metadata;
 		}
 
-		$settings      = get_plugin_settings();
-		$enabled       = ! empty( $settings['replace_original_image'] );
-		$max_dimension = isset( $settings['image_max_dimension'] ) ? absint( $settings['image_max_dimension'] ) : 0;
+		$max_dimension = get_max_dimension();
 
-		if ( ! $enabled || ! $max_dimension ) {
+		if ( ! $max_dimension || ! is_resizable_image( $attachment_id ) ) {
 			return $metadata;
 		}
 
-		$mime_type = get_post_mime_type( $attachment_id );
+		$metadata = $this->downscale_attachment( $attachment_id, $metadata, $max_dimension );
 
-		if ( ! $mime_type || 0 !== strpos( $mime_type, 'image/' ) ) {
-			return $metadata;
+		do_action( 'mediatoolkit_after_replace_original_image', $attachment_id, $metadata );
+
+		return $metadata;
+
+	}
+
+	/**
+	 * Downscale the original & the "full" size of an attachment and update its metadata.
+	 *
+	 * If the image was scaled, rotated or converted, the original stays next to the "full" size.
+	 * `wp_get_original_image_path` returns the original, `get_attached_file` the "full" size.
+	 *
+	 * @param int   $attachment_id The attachment ID.
+	 * @param array $metadata      The attachment metadata.
+	 * @param int   $max_dimension The max width or height.
+	 *
+	 * @return array The updated metadata.
+	 */
+	public function downscale_attachment( $attachment_id, $metadata, $max_dimension ) {
+
+		$full_path     = get_attached_file( $attachment_id );
+		$original_path = wp_get_original_image_path( $attachment_id );
+
+		if ( $original_path && $original_path !== $full_path ) {
+			$this->downscale_image( $original_path, $max_dimension );
 		}
 
-		/**
-		 * If the image was scaled or rotated, the real original stays next to the "full" size.
-		 * `wp_get_original_image_path` returns that original, `get_attached_file` would return the "full" size.
-		 */
-		$image_path = wp_get_original_image_path( $attachment_id );
+		$result = $this->downscale_image( $full_path, $max_dimension );
 
-		if ( ! $image_path || ! file_exists( $image_path ) ) {
-			return $metadata;
-		}
-
-		$editor = wp_get_image_editor( $image_path );
-
-		if ( is_wp_error( $editor ) ) {
-			return $metadata;
-		}
-
-		// Smaller images return an error here and stay as they are.
-		if ( is_wp_error( $editor->resize( $max_dimension, $max_dimension, false ) ) ) {
-			return $metadata;
-		}
-
-		$result = $editor->save( $image_path, $mime_type );
-
-		if ( is_wp_error( $result ) ) {
-			return $metadata;
-		}
-
-		// The original is the "full" size, so its dimensions & file size changed.
-		if ( empty( $metadata['original_image'] ) ) {
+		if ( $result ) {
 			$metadata['width']  = $result['width'];
 			$metadata['height'] = $result['height'];
 
 			if ( isset( $metadata['filesize'] ) ) {
-				$metadata['filesize'] = wp_filesize( $image_path );
+				$metadata['filesize'] = wp_filesize( $full_path );
 			}
 		}
-
-		do_action( 'mediatoolkit_after_replace_original_image', $attachment_id, $metadata );
 
 		return $metadata;
 

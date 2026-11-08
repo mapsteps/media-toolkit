@@ -21,6 +21,8 @@ function setup() {
 	add_filter( 'admin_body_class', '\MediaToolkit\setup_admin_body_class' );
 	add_action( 'admin_init', '\MediaToolkit\setup_settings' );
 	add_filter( 'plugin_action_links_' . MEDIA_TOOLKIT_PLUGIN_BASENAME, '\MediaToolkit\plugin_action_links' );
+	add_action( 'wp_ajax_mediatoolkit_bulk_ids', '\MediaToolkit\bulk_ids' );
+	add_action( 'wp_ajax_mediatoolkit_bulk_optimize', '\MediaToolkit\bulk_optimize' );
 
 }
 
@@ -34,6 +36,7 @@ function output() {
 	add_filter( 'wp_handle_upload_prefilter', '\MediaToolkit\modify_attachment_filename' );
 	add_filter( 'wp_editor_set_quality', '\MediaToolkit\set_compression_quality' );
 	add_filter( 'wp_generate_attachment_metadata', '\MediaToolkit\replace_original_image', 10, 3 );
+	add_filter( 'image_editor_output_format', '\MediaToolkit\convert_to_webp' );
 
 }
 
@@ -47,6 +50,65 @@ function get_plugin_settings() {
 	$settings = get_option( 'mediatoolkit_settings', array() );
 
 	return is_array( $settings ) ? $settings : array();
+
+}
+
+/**
+ * Get the max image size, if "Limit image size" is enabled.
+ *
+ * @return int The max width or height, 0 if disabled.
+ */
+function get_max_dimension() {
+
+	$settings = get_plugin_settings();
+
+	if ( empty( $settings['replace_original_image'] ) || empty( $settings['image_max_dimension'] ) ) {
+		return 0;
+	}
+
+	return absint( $settings['image_max_dimension'] );
+
+}
+
+/**
+ * Check whether the server can save WebP images.
+ *
+ * @return bool
+ */
+function webp_supported() {
+
+	return wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) );
+
+}
+
+/**
+ * Check whether an attachment is an image we can resize.
+ * GIFs are skipped, resizing them would remove their animation.
+ *
+ * @param int $attachment_id The attachment ID.
+ * @return bool
+ */
+function is_resizable_image( $attachment_id ) {
+
+	return in_array( get_post_mime_type( $attachment_id ), array( 'image/jpeg', 'image/png', 'image/webp', 'image/avif' ), true );
+
+}
+
+/**
+ * Run an image save without any format conversion, so files keep their name & format.
+ *
+ * @param callable $callback The callback that saves the image.
+ * @return mixed The callback's return value.
+ */
+function save_without_conversion( $callback ) {
+
+	add_filter( 'image_editor_output_format', '__return_empty_array', PHP_INT_MAX );
+
+	$result = call_user_func( $callback );
+
+	remove_filter( 'image_editor_output_format', '__return_empty_array', PHP_INT_MAX );
+
+	return $result;
 
 }
 
@@ -115,13 +177,8 @@ function setup_settings() {
  */
 function change_big_image_threshold( $threshold ) {
 
-	$settings = get_plugin_settings();
-
-	$replace_original = ! empty( $settings['replace_original_image'] );
-	$max_dimension    = isset( $settings['image_max_dimension'] ) ? absint( $settings['image_max_dimension'] ) : 0;
-
 	// Disable the threshold if the original image is being replaced.
-	if ( $replace_original && $max_dimension ) {
+	if ( get_max_dimension() ) {
 		return false;
 	}
 
@@ -137,12 +194,9 @@ function change_big_image_threshold( $threshold ) {
  */
 function remove_oversized_image_sizes( $sizes ) {
 
-	$settings = get_plugin_settings();
+	$max_dimension = get_max_dimension();
 
-	$replace_original = ! empty( $settings['replace_original_image'] );
-	$max_dimension    = isset( $settings['image_max_dimension'] ) ? absint( $settings['image_max_dimension'] ) : 0;
-
-	if ( ! $replace_original || ! $max_dimension || ! is_array( $sizes ) ) {
+	if ( ! $max_dimension || ! is_array( $sizes ) ) {
 		return $sizes;
 	}
 
@@ -198,5 +252,38 @@ function replace_original_image( $metadata, $attachment_id, $context = 'create' 
 
 	$instance = new MediaToolkitOutput();
 	return $instance->replace_original_image( $metadata, $attachment_id, $context );
+
+}
+
+/**
+ * Convert new JPEG & PNG uploads to WebP.
+ *
+ * @param array $formats Mime type mappings (source => output).
+ * @return array
+ */
+function convert_to_webp( $formats ) {
+
+	$instance = new MediaToolkitOutput();
+	return $instance->convert_to_webp( $formats );
+
+}
+
+/**
+ * Bulk optimize: get the IDs of all images.
+ */
+function bulk_ids() {
+
+	$instance = new MediaToolkitBulk();
+	$instance->ajax_get_ids();
+
+}
+
+/**
+ * Bulk optimize: optimize a batch of images.
+ */
+function bulk_optimize() {
+
+	$instance = new MediaToolkitBulk();
+	$instance->ajax_optimize();
 
 }

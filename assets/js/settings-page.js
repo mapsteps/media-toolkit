@@ -69,16 +69,101 @@
 	var toggle = document.getElementById('mediatoolkit_settings--replace-original-image');
 	var maxSize = document.getElementById('mediatoolkit_settings--image-max-dimension');
 
-	if (!toggle || !maxSize) return;
+	if (toggle && maxSize) {
+		var row = maxSize.closest('tr');
 
-	var row = maxSize.closest('tr');
+		var updateMaxSize = function () {
+			maxSize.readOnly = !toggle.checked;
 
-	function updateMaxSize() {
-		maxSize.readOnly = !toggle.checked;
+			if (row) row.classList.toggle('row-disabled', !toggle.checked);
+		};
 
-		if (row) row.classList.toggle('row-disabled', !toggle.checked);
+		updateMaxSize();
+		toggle.addEventListener('change', updateMaxSize);
 	}
 
-	updateMaxSize();
-	toggle.addEventListener('change', updateMaxSize);
+	// Bulk optimize existing images, a few at a time.
+	var bulkButton = document.querySelector('.mediatk-bulk-button');
+	var bulkStatus = document.querySelector('.mediatk-bulk-status');
+
+	if (!bulkButton || !bulkStatus || !window.mediaToolkit) return;
+
+	var i18n = window.mediaToolkit.i18n;
+
+	function format(text, values) {
+		values.forEach(function (value, index) {
+			text = text.replace('%' + (index + 1) + '$d', value);
+		});
+
+		return text;
+	}
+
+	function request(action, data) {
+		var body = new FormData();
+
+		body.append('action', action);
+		body.append('nonce', window.mediaToolkit.nonce);
+
+		(data || []).forEach(function (id) {
+			body.append('ids[]', id);
+		});
+
+		return fetch(window.mediaToolkit.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+			.then(function (response) {
+				return response.json();
+			})
+			.then(function (json) {
+				if (!json || !json.success) throw new Error('Request failed');
+
+				return json.data;
+			});
+	}
+
+	bulkButton.addEventListener('click', function () {
+		if (!window.confirm(i18n.confirm)) return;
+
+		var totals = { optimized: 0, skipped: 0, failed: 0 };
+		var batchSize = 3;
+
+		bulkButton.disabled = true;
+		bulkStatus.textContent = i18n.starting;
+
+		request('mediatoolkit_bulk_ids')
+			.then(function (ids) {
+				if (!ids.length) {
+					bulkStatus.textContent = i18n.none;
+					return;
+				}
+
+				var index = 0;
+
+				function next() {
+					if (index >= ids.length) {
+						bulkStatus.textContent = format(i18n.done, [totals.optimized, totals.skipped, totals.failed]);
+						return;
+					}
+
+					bulkStatus.textContent = format(i18n.progress, [index, ids.length]);
+
+					var batch = ids.slice(index, index + batchSize);
+
+					return request('mediatoolkit_bulk_optimize', batch).then(function (result) {
+						totals.optimized += result.optimized;
+						totals.skipped += result.skipped;
+						totals.failed += result.failed;
+						index += batch.length;
+
+						return next();
+					});
+				}
+
+				return next();
+			})
+			.catch(function () {
+				bulkStatus.textContent = i18n.error;
+			})
+			.finally(function () {
+				bulkButton.disabled = false;
+			});
+	});
 })();
