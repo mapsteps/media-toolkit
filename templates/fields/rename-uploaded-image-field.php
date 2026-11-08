@@ -21,12 +21,14 @@ return function ( $settings ) {
 		type="text"
 		id="mediatoolkit_settings--rename-uploaded-image"
 		name="mediatoolkit_settings[image_rename_format]"
-		class="mediatk-text-field is-large"
-		value="<?php echo esc_attr( $rename_structure ); ?>" placeholder=""
+		class="regular-text"
+		value="<?php echo esc_attr( $rename_structure ); ?>"
+		placeholder="{original_file_name}-{upload_date}"
+		aria-describedby="mediatoolkit-rename-description"
 	/>
 
-	<p class="description">
-		<?php _e( 'Use this to create a custom filename structure. Feel free to use the available template tags.', 'media-toolkit' ); ?>
+	<p class="description" id="mediatoolkit-rename-description">
+		<?php esc_html_e( 'Rename uploaded images. Use the template tags from the sidebar. Leave empty to keep the original filename.', 'media-toolkit' ); ?>
 	</p>
 
 	<?php

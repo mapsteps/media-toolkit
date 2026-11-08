@@ -1,2 +1,84 @@
-!function(){function e(e){let o=e.target;if(!o)return;let n=o.innerText;if(!n)return;t(n);let r=document.querySelector(".mediatk-tags-metabox .action-status");r&&(r.classList.add("is-shown"),setTimeout(()=>{r.classList.remove("is-shown")},1500))}async function t(e){try{await navigator.clipboard.writeText(e)}catch(t){o(e)}}async function o(e){let t=document.createElement("textarea");t.value=e,t.style.position="fixed",t.style.top="-3px",t.style.left="-3px",t.style.width="1px",t.style.height="1px",t.style.background="transparent",t.style.opacity="0",document.body.appendChild(t),t.focus(),t.select();try{document.execCommand("copy")}catch(e){console.error("Unable to copy text to clipboard:",e)}document.body.removeChild(t)}function n(e){let t=e.target;t&&r(t)}function r(e){let t=e.closest("tr");if(!t)return;let o=t?.closest("table");if(!o)return;let n=o.querySelector("tr:nth-child(2)");if(!n)return;let r=e.checked,l=n.querySelectorAll("input");r?(n.classList.remove("row-disabled"),l.forEach(e=>{e.readOnly=!1})):(n.classList.add("row-disabled"),l.forEach(e=>{e.readOnly=!0}))}(function(){if(!document.querySelector("form.mediatoolkit-settings-form"))return;let e=document.getElementById("mediatoolkit_settings[replace_original_image]");e&&(r(e),e.addEventListener("change",n))})(),function(){let t=document.querySelector(".mediatk-tags-metabox");if(!t)return;let o=t.querySelectorAll("code");o.length&&o.forEach(t=>{t.addEventListener("click",e)})}()}();
-//# sourceMappingURL=settings-page.js.map
+/**
+ * Media Toolkit settings page.
+ */
+(function () {
+	var statusTimer;
+
+	/**
+	 * Copy a template tag and show the "Copied!" status.
+	 *
+	 * @param {HTMLElement} tag The clicked tag.
+	 */
+	function copyTag(tag) {
+		var text = tag.textContent.trim();
+		var status = document.querySelector('.tags-heatbox .action-status');
+
+		if (navigator.clipboard && window.isSecureContext) {
+			navigator.clipboard.writeText(text).catch(function () {
+				copyViaTextarea(text);
+			});
+		} else {
+			copyViaTextarea(text);
+		}
+
+		if (!status) return;
+
+		status.classList.add('is-shown');
+		clearTimeout(statusTimer);
+		statusTimer = setTimeout(function () {
+			status.classList.remove('is-shown');
+		}, 1500);
+	}
+
+	/**
+	 * Fallback for sites without HTTPS.
+	 *
+	 * @param {string} text The text to copy.
+	 */
+	function copyViaTextarea(text) {
+		var textarea = document.createElement('textarea');
+
+		textarea.value = text;
+		textarea.setAttribute('readonly', '');
+		textarea.style.position = 'fixed';
+		textarea.style.opacity = '0';
+		document.body.appendChild(textarea);
+		textarea.select();
+
+		try {
+			document.execCommand('copy');
+		} catch (err) {}
+
+		document.body.removeChild(textarea);
+	}
+
+	document.querySelectorAll('.tags-heatbox .tags-wrapper code').forEach(function (tag) {
+		tag.addEventListener('click', function () {
+			copyTag(tag);
+		});
+
+		tag.addEventListener('keydown', function (e) {
+			if ('Enter' === e.key || ' ' === e.key) {
+				e.preventDefault();
+				copyTag(tag);
+			}
+		});
+	});
+
+	// Disable the max image size while "Replace original images" is off.
+	var toggle = document.getElementById('mediatoolkit_settings--replace-original-image');
+	var maxSize = document.getElementById('mediatoolkit_settings--image-max-dimension');
+
+	if (!toggle || !maxSize) return;
+
+	var row = maxSize.closest('tr');
+
+	function updateMaxSize() {
+		maxSize.readOnly = !toggle.checked;
+
+		if (row) row.classList.toggle('row-disabled', !toggle.checked);
+	}
+
+	updateMaxSize();
+	toggle.addEventListener('change', updateMaxSize);
+})();

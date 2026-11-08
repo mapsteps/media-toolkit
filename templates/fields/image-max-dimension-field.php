@@ -20,12 +20,18 @@ return function ( $settings ) {
 	<input
 		type="number"
 		step="1"
-		min="0"
+		min="1"
 		id="mediatoolkit_settings--image-max-dimension"
 		name="mediatoolkit_settings[image_max_dimension]"
-		class="mediatk-dimension-field"
-		value="<?php echo esc_attr( $max_dimension ); ?>" placeholder="2560"
-	/> <code>px</code>
+		class="small-text"
+		value="<?php echo esc_attr( $max_dimension ); ?>"
+		placeholder="2560"
+		aria-describedby="mediatoolkit-max-size-description"
+	/> px
+
+	<p class="description" id="mediatoolkit-max-size-description">
+		<?php esc_html_e( 'The max size of the longer edge in pixels.', 'media-toolkit' ); ?>
+	</p>
 
 	<?php
 };

@@ -19,11 +19,20 @@ return function ( $settings ) {
 
 	<input
 		type="number"
+		min="1"
+		max="100"
+		step="1"
 		id="mediatoolkit_settings--compression-quality"
 		name="mediatoolkit_settings[compression_quality]"
-		class="mediatk-dimension-field"
-		value="<?php echo esc_attr( $quality ); ?>" placeholder="82"
-	/> <code>%</code>
+		class="small-text"
+		value="<?php echo esc_attr( $quality ); ?>"
+		placeholder="82"
+		aria-describedby="mediatoolkit-quality-description"
+	/> %
+
+	<p class="description" id="mediatoolkit-quality-description">
+		<?php esc_html_e( 'The quality of generated images, from 1 to 100. Leave empty to use the WordPress default (82).', 'media-toolkit' ); ?>
+	</p>
 
 	<?php
 };

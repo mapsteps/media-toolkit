@@ -14,21 +14,24 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
  */
 return function ( $settings ) {
 
-	$is_checked = isset( $settings['replace_original_image'] ) ? true : false;
+	$is_checked = ! empty( $settings['replace_original_image'] );
 	?>
 
-	<label for="mediatoolkit_settings[replace_original_image]" class="toggle-switch">
+	<label class="toggle-switch">
 		<input
 			type="checkbox"
 			name="mediatoolkit_settings[replace_original_image]"
-			id="mediatoolkit_settings[replace_original_image]"
+			id="mediatoolkit_settings--replace-original-image"
 			value="1"
-			<?php checked( $is_checked, true ); ?>
+			aria-describedby="mediatoolkit-replace-description"
+			<?php checked( $is_checked ); ?>
 		/>
-		<div class="switch-track">
-			<div class="switch-thumb"></div>
-		</div>
+		<span class="switch-track"><span class="switch-thumb"></span></span>
 	</label>
+
+	<p class="description" id="mediatoolkit-replace-description">
+		<?php esc_html_e( 'On upload, downscale the original image to the max image size below.', 'media-toolkit' ); ?>
+	</p>
 
 	<?php
 };
