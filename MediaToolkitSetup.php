@@ -70,21 +70,29 @@ class MediaToolkitSetup {
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'mediatoolkit_bulk' ),
+				'editUrl' => admin_url( 'post.php?action=edit&post=' ),
 				'i18n'    => array(
-					'starting' => __( 'Looking for images…', 'media-toolkit' ),
-					'running'  => __( 'Optimizing…', 'media-toolkit' ),
+					'starting'  => __( 'Looking for images…', 'media-toolkit' ),
+					'running'   => __( 'Optimizing…', 'media-toolkit' ),
 					/* translators: 1: number of processed images, 2: total number of images. */
-					'count'    => __( '%1$d of %2$d', 'media-toolkit' ),
+					'count'     => __( '%1$d of %2$d', 'media-toolkit' ),
 					/* translators: 1: optimized images, 2: skipped images, 3: failed images. */
-					'done'     => __( '%1$d optimized, %2$d skipped, %3$d failed.', 'media-toolkit' ),
-					'none'     => __( 'No images found.', 'media-toolkit' ),
-					'already'  => __( 'No disk space saved. Your images were already small, or the image quality is now higher than before.', 'media-toolkit' ),
-					'error'    => __( 'Something went wrong. You can resume where it stopped.', 'media-toolkit' ),
-					'failed'   => __( 'Something went wrong. Please reload the page and try again.', 'media-toolkit' ),
+					'done'      => __( '%1$d optimized, %2$d skipped, %3$d failed.', 'media-toolkit' ),
+					'none'      => __( 'No images found.', 'media-toolkit' ),
+					'crashed'   => __( 'The server stopped while optimizing this image, most likely it ran out of memory. Try a smaller image or ask your host for more memory.', 'media-toolkit' ),
+					/* translators: %d: attachment ID. */
+					'image'     => __( 'Image #%d', 'media-toolkit' ),
+					'failedTag' => __( 'Failed', 'media-toolkit' ),
+					'noChange'  => __( 'No change', 'media-toolkit' ),
+					/* translators: %d: number of images. */
+					'logLimit'  => __( 'Showing the last %d images.', 'media-toolkit' ),
+					'already'   => __( 'No disk space saved. Your images were already small, or the image quality is now higher than before.', 'media-toolkit' ),
+					'error'     => __( 'Something went wrong. You can resume where it stopped.', 'media-toolkit' ),
+					'failed'    => __( 'Something went wrong. Please reload the page and try again.', 'media-toolkit' ),
 					/* translators: 1: number of processed images, 2: total number of images. */
-					'stopped'  => __( 'The last run stopped at %1$d of %2$d images.', 'media-toolkit' ),
+					'stopped'   => __( 'The last run stopped at %1$d of %2$d images.', 'media-toolkit' ),
 					/* translators: %s: saved disk space, e.g. "12.4 MB". */
-					'total'    => __( 'Saved %s of disk space.', 'media-toolkit' ),
+					'total'     => __( 'Saved %s of disk space.', 'media-toolkit' ),
 				),
 			)
 		);

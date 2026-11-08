@@ -108,13 +108,18 @@
 	var current = el('.mediatk-bulk-current');
 	var currentImage = el('.mediatk-bulk-current-image');
 	var done = el('.mediatk-bulk-done');
+	var log = el('.mediatk-bulk-log');
+	var logList = el('.mediatk-bulk-log-list');
+	var logLimit = el('.mediatk-bulk-log-limit');
+	var maxRows = 200;
+	var lastImage = null;
 
 	function format(text, values) {
 		values.forEach(function (value, index) {
 			text = text.replace('%' + (index + 1) + '$d', value).replace('%' + (index + 1) + '$s', value);
 		});
 
-		return text.replace('%s', values[0]);
+		return text.replace('%s', values[0]).replace('%d', values[0]);
 	}
 
 	function formatBytes(bytes) {
@@ -209,11 +214,107 @@
 		saved.textContent = formatBytes(run.saved);
 	}
 
+	function getPercent(image) {
+		var before = image.before.bytes;
+
+		return before ? Math.round(((before - image.after.bytes) / before) * 100) : 0;
+	}
+
+	function dimensionsText(image) {
+		var before = image.before;
+		var after = image.after;
+		var text = after.width + ' × ' + after.height;
+
+		return before.width !== after.width || before.height !== after.height ? before.width + ' × ' + before.height + ' → ' + text : text;
+	}
+
+	function bytesText(image) {
+		var text = formatBytes(image.after.bytes);
+
+		return image.before.bytes > image.after.bytes ? formatBytes(image.before.bytes) + ' → ' + text : text;
+	}
+
+	// Add an image to the list below the current one, newest on top.
+	function addRow(image) {
+		var failed = 'failed' === image.status;
+		var row = document.createElement('li');
+		var thumb;
+		var info = document.createElement('div');
+		var title = document.createElement('a');
+		var meta = document.createElement('span');
+		var badge = document.createElement('span');
+		var percent = failed ? 0 : getPercent(image);
+
+		row.className = 'mediatk-log-row' + (failed ? ' is-failed' : '');
+
+		if (!failed && image.thumbnail) {
+			thumb = document.createElement('img');
+			thumb.src = image.thumbnail;
+			thumb.alt = '';
+			thumb.loading = 'lazy';
+		} else {
+			thumb = document.createElement('span');
+			thumb.className = 'dashicons ' + (failed ? 'dashicons-warning' : 'dashicons-format-image');
+			thumb.setAttribute('aria-hidden', 'true');
+		}
+
+		thumb.classList.add('mediatk-log-thumb');
+
+		title.className = 'mediatk-log-title';
+		title.href = image.edit || window.mediaToolkit.editUrl + image.id;
+		title.target = '_blank';
+		title.rel = 'noopener';
+		title.textContent = image.title || format(i18n.image, [image.id]);
+
+		meta.className = 'mediatk-log-meta';
+		meta.textContent = failed ? image.reason : dimensionsText(image) + ' · ' + bytesText(image);
+
+		badge.className = 'mediatk-badge' + (failed ? ' is-failed' : percent > 0 ? '' : ' is-neutral');
+		badge.textContent = failed ? i18n.failedTag : percent > 0 ? '−' + percent + '%' : i18n.noChange;
+
+		info.className = 'mediatk-log-info';
+		info.appendChild(title);
+		info.appendChild(meta);
+
+		row.appendChild(thumb);
+		row.appendChild(info);
+		row.appendChild(badge);
+
+		logList.insertBefore(row, logList.firstChild);
+		log.hidden = false;
+
+		// Keep the page fast on big libraries.
+		if (logList.children.length > maxRows) {
+			logList.removeChild(logList.lastChild);
+			logLimit.textContent = format(i18n.logLimit, [maxRows]);
+			logLimit.hidden = false;
+		}
+	}
+
+	// A failed image goes straight into the list, after the image that's currently shown.
+	function addFailedRow(image) {
+		if (lastImage) addRow(lastImage);
+		lastImage = null;
+		current.hidden = true;
+		addRow(image);
+	}
+
+	function clearLog() {
+		lastImage = null;
+		logList.innerHTML = '';
+		logLimit.hidden = true;
+		log.hidden = true;
+	}
+
 	function showImage(image) {
 		var before = image.before;
 		var after = image.after;
-		var percent = before.bytes ? Math.round(((before.bytes - after.bytes) / before.bytes) * 100) : 0;
+		var percent = getPercent(image);
 		var badge = el('.mediatk-bulk-percent');
+
+		// The previous image moves into the list.
+		if (lastImage) addRow(lastImage);
+		lastImage = image;
 
 		current.hidden = false;
 
@@ -244,6 +345,9 @@
 	}
 
 	function showDone(run) {
+		if (lastImage) addRow(lastImage);
+		lastImage = null;
+
 		progressWrap.hidden = true;
 		current.hidden = true;
 		done.hidden = false;
@@ -277,6 +381,11 @@
 					run.totals.failed += result.failed;
 
 					result.images.forEach(function (image) {
+						if ('failed' === image.status) {
+							addFailedRow(image);
+							return;
+						}
+
 						run.saved += image.before.bytes - image.after.bytes;
 						showImage(image);
 					});
@@ -296,6 +405,7 @@
 
 					// Retry once, then count the image as failed and move on, so one broken image can't block the run.
 					if (failures === 2) {
+						addFailedRow({ status: 'failed', id: run.ids[run.index], reason: i18n.crashed });
 						run.totals.failed++;
 						run.index++;
 						saveRun(run);
@@ -337,6 +447,7 @@
 		bulkButton.hidden = false;
 		current.hidden = true;
 		done.hidden = true;
+		clearLog();
 		clearRun();
 		setRunning(true);
 		bulkStatus.textContent = i18n.starting;

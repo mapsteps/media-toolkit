@@ -75,7 +75,7 @@ class MediaToolkitBulk {
 
 			++$results[ $result['status'] ];
 
-			if ( 'optimized' === $result['status'] ) {
+			if ( 'skipped' !== $result['status'] ) {
 				$results['images'][] = $result;
 			}
 		}
@@ -317,6 +317,26 @@ class MediaToolkitBulk {
 	}
 
 	/**
+	 * The result of an image that couldn't be optimized.
+	 *
+	 * @param int    $attachment_id The attachment ID.
+	 * @param string $reason        Why it failed & what to do about it.
+	 *
+	 * @return array
+	 */
+	private function failed( $attachment_id, $reason ) {
+
+		return array(
+			'status' => 'failed',
+			'id'     => $attachment_id,
+			'title'  => get_the_title( $attachment_id ),
+			'edit'   => get_edit_post_link( $attachment_id, 'raw' ),
+			'reason' => $reason,
+		);
+
+	}
+
+	/**
 	 * Downscale an image to the max image size & re-create its sizes with the current quality.
 	 *
 	 * @param int $attachment_id The attachment ID.
@@ -335,8 +355,12 @@ class MediaToolkitBulk {
 		$metadata  = wp_get_attachment_metadata( $attachment_id );
 		$full_path = get_attached_file( $attachment_id );
 
-		if ( ! is_array( $metadata ) || ! $full_path || ! file_exists( $full_path ) ) {
-			return array( 'status' => 'failed' );
+		if ( ! $full_path || ! file_exists( $full_path ) ) {
+			return $this->failed( $attachment_id, __( 'The image file is missing on the server. Upload the image again or delete it.', 'media-toolkit' ) );
+		}
+
+		if ( ! is_array( $metadata ) ) {
+			return $this->failed( $attachment_id, __( 'WordPress has no image data for this file. Upload the image again.', 'media-toolkit' ) );
 		}
 
 		$original_path = wp_get_original_image_path( $attachment_id );
@@ -375,7 +399,12 @@ class MediaToolkitBulk {
 		if ( is_wp_error( $editor ) ) {
 			$this->remove_resize_source( $source, $full_path );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
-			return array( 'status' => 'failed' );
+
+			if ( 'mediatoolkit_source' === $editor->get_error_code() ) {
+				return $this->failed( $attachment_id, __( 'The image couldn\'t be saved. Please check that your uploads folder is writable.', 'media-toolkit' ) );
+			}
+
+			return $this->failed( $attachment_id, __( 'The image can\'t be opened. It may be damaged, or your server doesn\'t support this image format.', 'media-toolkit' ) );
 		}
 
 		$backups = $this->backup_sizes( $dir, $old_sizes );
@@ -411,6 +440,7 @@ class MediaToolkitBulk {
 			'status'    => 'optimized',
 			'id'        => $attachment_id,
 			'title'     => get_the_title( $attachment_id ),
+			'edit'      => get_edit_post_link( $attachment_id, 'raw' ),
 			'thumbnail' => $thumbnail ? add_query_arg( 'mediatoolkit', time(), $thumbnail ) : '',
 			'before'    => $before,
 			'after'     => array(

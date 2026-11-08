@@ -78,6 +78,11 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 			</div>
 		</div>
 
+		<div class="mediatk-bulk-log" hidden>
+			<ul class="mediatk-bulk-log-list" aria-label="<?php esc_attr_e( 'Optimized images', 'media-toolkit' ); ?>"></ul>
+			<p class="mediatk-bulk-log-limit" hidden></p>
+		</div>
+
 		<p class="mediatk-bulk-running" hidden>
 			<?php esc_html_e( 'Please keep this page open until it\'s done. If you leave, you can resume where it stopped.', 'media-toolkit' ); ?>
 		</p>

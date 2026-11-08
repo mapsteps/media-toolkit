@@ -282,6 +282,117 @@
 	color: var(--heatbox-text-muted);
 }
 
+/* List of optimized images, newest on top */
+.mediatk-bulk-log {
+	margin-top: 16px;
+}
+
+.mediatk-bulk-log-list {
+	max-height: 360px;
+	margin: 0;
+	padding: 0;
+	overflow-y: auto;
+	list-style: none;
+	border: 1px solid var(--heatbox-border);
+	border-radius: var(--heatbox-radius-small);
+}
+
+.mediatk-log-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 0;
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--heatbox-border);
+	animation: mediatkRowIn 0.3s ease;
+}
+
+.mediatk-log-row:last-child {
+	border-bottom: 0;
+}
+
+.mediatk-log-row.is-failed {
+	background-color: #fcf0f1;
+}
+
+.mediatk-log-thumb {
+	flex-shrink: 0;
+	width: 40px;
+	height: 40px;
+	object-fit: cover;
+	border-radius: 4px;
+}
+
+span.mediatk-log-thumb {
+	font-size: 24px;
+	line-height: 40px;
+	text-align: center;
+	color: var(--heatbox-text-muted);
+	background-color: var(--heatbox-surface-muted);
+}
+
+.mediatk-log-row.is-failed span.mediatk-log-thumb {
+	color: #d63638;
+	background-color: transparent;
+}
+
+.mediatk-log-info {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+	min-width: 0;
+}
+
+.mediatk-log-title {
+	overflow: hidden;
+	font-weight: 500;
+	text-decoration: none;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.mediatk-log-meta {
+	font-size: 12px;
+	color: var(--heatbox-text-muted);
+	font-variant-numeric: tabular-nums;
+}
+
+.mediatk-log-row.is-failed .mediatk-log-meta {
+	color: #8a2424;
+}
+
+.mediatk-log-row .mediatk-badge {
+	flex-shrink: 0;
+}
+
+.mediatk-badge.is-neutral {
+	color: var(--heatbox-text-muted);
+	background-color: var(--heatbox-surface-muted);
+}
+
+.mediatk-badge.is-failed {
+	color: #8a2424;
+	background-color: #f9dcde;
+}
+
+.mediatk-bulk-log-limit {
+	margin: 8px 0 0;
+	font-size: 12px;
+	color: var(--heatbox-text-muted);
+}
+
+@keyframes mediatkRowIn {
+	from {
+		opacity: 0;
+		transform: translateY(-6px);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
 @keyframes mediatkSquash {
 	from {
 		transform: scale(1.12);
@@ -303,7 +414,8 @@
 
 @media (prefers-reduced-motion: reduce) {
 	.mediatk-progress-bar,
-	.mediatk-bulk-current-image {
+	.mediatk-bulk-current-image,
+	.mediatk-log-row {
 		transition: none;
 		animation: none;
 	}
