@@ -119,13 +119,33 @@
 			});
 	}
 
+	var bulkRunning = document.querySelector('.mediatk-bulk-running');
+
+	// Ask the browser to confirm leaving the page while optimizing.
+	function preventLeaving(e) {
+		e.preventDefault();
+		e.returnValue = '';
+	}
+
+	function setRunning(isRunning) {
+		bulkButton.disabled = isRunning;
+
+		if (bulkRunning) bulkRunning.hidden = !isRunning;
+
+		if (isRunning) {
+			window.addEventListener('beforeunload', preventLeaving);
+		} else {
+			window.removeEventListener('beforeunload', preventLeaving);
+		}
+	}
+
 	bulkButton.addEventListener('click', function () {
 		if (!window.confirm(i18n.confirm)) return;
 
 		var totals = { optimized: 0, skipped: 0, failed: 0 };
 		var batchSize = 3;
 
-		bulkButton.disabled = true;
+		setRunning(true);
 		bulkStatus.textContent = i18n.starting;
 
 		request('mediatoolkit_bulk_ids')
@@ -163,7 +183,7 @@
 				bulkStatus.textContent = i18n.error;
 			})
 			.finally(function () {
-				bulkButton.disabled = false;
+				setRunning(false);
 			});
 	});
 })();

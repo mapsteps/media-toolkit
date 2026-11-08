@@ -91,3 +91,12 @@
 .mediatk-settings-page .mediatk-bulk-metabox {
 	margin-top: 40px;
 }
+
+.mediatk-bulk-metabox .mediatk-bulk-running {
+	margin: 12px 0 0;
+	font-weight: 500;
+}
+
+.mediatk-bulk-metabox .mediatk-bulk-running[hidden] {
+	display: none;
+}

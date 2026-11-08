@@ -24,5 +24,8 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 			<button type="button" class="button mediatk-bulk-button"><?php esc_html_e( 'Optimize existing images', 'media-toolkit' ); ?></button>
 			<span class="mediatk-bulk-status" role="status" aria-live="polite"></span>
 		</p>
+		<p class="mediatk-bulk-running" hidden>
+			<?php esc_html_e( 'Please keep this page open until it\'s done. If you leave or reload the page, the process stops and you\'ll have to start it again.', 'media-toolkit' ); ?>
+		</p>
 	</div>
 </div>
