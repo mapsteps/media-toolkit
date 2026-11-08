@@ -31,7 +31,7 @@ Convert new JPEG & PNG uploads to WebP. WebP images are usually 25-35% smaller a
 Set a max width or height for new uploads. Larger images are downscaled on upload, so a 6000px photo straight from your camera doesn't stay on your server and no image is ever larger than your limit.
 
 = 🧹 Optimize existing images =
-Apply the max image size and image quality to the images you already uploaded, with one click. Watch each image shrink, see how much disk space you saved, and resume if you closed the page. Filenames & URLs stay the same, so nothing on your site breaks.
+Apply the max image size and image quality to the images you already uploaded, with one click. Watch each image shrink with its before & after size, see how much disk space you saved, and resume if you closed the page. Image sizes are never replaced with bigger files. Filenames & URLs stay the same, so nothing on your site breaks.
 
 = 🪶 Lightweight =
 No bloat, no external services. Media Toolkit uses WordPress' own image editor.

@@ -111,6 +111,69 @@ class MediaToolkitBulk {
 	}
 
 	/**
+	 * Copy the existing image sizes, so they can be restored if the new ones are bigger.
+	 *
+	 * @param string $dir       The upload directory of the image.
+	 * @param array  $old_sizes The image sizes from the metadata.
+	 *
+	 * @return array Backup paths, keyed by the size's filename.
+	 */
+	private function backup_sizes( $dir, $old_sizes ) {
+
+		$backups = array();
+
+		foreach ( $old_sizes as $size ) {
+			if ( empty( $size['file'] ) ) {
+				continue;
+			}
+
+			$file = wp_basename( $size['file'] );
+			$path = $dir . '/' . $file;
+
+			if ( file_exists( $path ) && copy( $path, $path . '.mediatoolkit-backup' ) ) {
+				$backups[ $file ] = $path . '.mediatoolkit-backup';
+			}
+		}
+
+		return $backups;
+
+	}
+
+	/**
+	 * Restore old image sizes that were smaller than the new ones (same dimensions, same filename),
+	 * e.g. when the quality is now higher than when the image was uploaded. Then remove the backups.
+	 *
+	 * @param string $dir       The upload directory of the image.
+	 * @param array  $new_sizes The re-created image sizes.
+	 * @param array  $backups   Backup paths, keyed by the size's filename.
+	 *
+	 * @return array The image sizes with updated file sizes.
+	 */
+	private function keep_smaller_sizes( $dir, $new_sizes, $backups ) {
+
+		clearstatcache();
+
+		foreach ( $new_sizes as $name => $size ) {
+			$file = wp_basename( $size['file'] );
+			$path = $dir . '/' . $file;
+
+			if ( isset( $backups[ $file ] ) && file_exists( $path ) && filesize( $backups[ $file ] ) < filesize( $path ) ) {
+				copy( $backups[ $file ], $path );
+				clearstatcache();
+
+				$new_sizes[ $name ]['filesize'] = filesize( $path );
+			}
+		}
+
+		foreach ( $backups as $backup ) {
+			wp_delete_file( $backup );
+		}
+
+		return $new_sizes;
+
+	}
+
+	/**
 	 * Get the total size of files in bytes.
 	 *
 	 * @param array $files The paths.
@@ -190,7 +253,10 @@ class MediaToolkitBulk {
 			return array( 'status' => 'failed' );
 		}
 
-		$sizes = apply_filters( 'intermediate_image_sizes_advanced', wp_get_registered_image_subsizes(), $metadata, $attachment_id );
+		$sizes     = apply_filters( 'intermediate_image_sizes_advanced', wp_get_registered_image_subsizes(), $metadata, $attachment_id );
+		$old_sizes = isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ? $metadata['sizes'] : array();
+		$dir       = dirname( $full_path );
+		$backups   = $this->backup_sizes( $dir, $old_sizes );
 
 		$new_sizes = save_without_conversion(
 			function () use ( $editor, $sizes ) {
@@ -198,7 +264,7 @@ class MediaToolkitBulk {
 			}
 		);
 
-		$old_sizes = isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ? $metadata['sizes'] : array();
+		$new_sizes = $this->keep_smaller_sizes( $dir, $new_sizes, $backups );
 
 		// Keep sizes that are no longer registered (e.g. from a previous theme). Old files are never deleted.
 		$metadata['sizes'] = array_merge( array_diff_key( $old_sizes, wp_get_registered_image_subsizes() ), $new_sizes );

@@ -70,6 +70,14 @@
 }
 
 /* Bulk optimize */
+.mediatk-settings-page .mediatk-bulk-metabox {
+	margin-top: 40px;
+}
+
+.mediatk-bulk-metabox [hidden] {
+	display: none !important;
+}
+
 .mediatk-bulk-metabox .mediatk-bulk-list {
 	margin: 0 0 16px;
 	padding-inline-start: 20px;
@@ -81,42 +89,63 @@
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 12px;
-	margin-bottom: 0;
 }
 
 .mediatk-bulk-metabox .mediatk-bulk-status {
 	color: var(--heatbox-text-muted);
 }
 
-.mediatk-settings-page .mediatk-bulk-metabox {
-	margin-top: 40px;
-}
-
 .mediatk-bulk-metabox .mediatk-bulk-running {
-	margin: 12px 0 0;
-	font-weight: 500;
+	margin: 16px 0 0;
+	color: var(--heatbox-text-muted);
 }
 
-.mediatk-bulk-metabox .mediatk-bulk-running[hidden] {
-	display: none;
+/* Inline confirmation */
+.mediatk-bulk-confirm {
+	padding: 16px;
+	background-color: var(--heatbox-surface-muted);
+	border: 1px solid var(--heatbox-border);
+	border-radius: var(--heatbox-radius-small);
 }
 
-.mediatk-bulk-metabox .mediatk-bulk-actions [hidden],
-.mediatk-bulk-metabox .mediatk-bulk-progress[hidden],
-.mediatk-bulk-metabox .mediatk-bulk-current[hidden] {
-	display: none;
+.mediatk-bulk-confirm p {
+	margin: 0 0 12px;
 }
 
-/* Progress */
+/* Progress: summary, bar & the image that was optimized last */
 .mediatk-bulk-progress {
-	margin-top: 20px;
+	margin-top: 24px;
+}
+
+.mediatk-bulk-summary {
+	display: flex;
+	gap: 32px;
+	margin-bottom: 12px;
+}
+
+.mediatk-stat {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.mediatk-stat-label {
+	font-size: 12px;
+	color: var(--heatbox-text-muted);
+}
+
+.mediatk-stat-value {
+	font-size: 22px;
+	font-weight: 600;
+	line-height: 1.3;
+	color: var(--heatbox-text);
+	font-variant-numeric: tabular-nums;
 }
 
 .mediatk-progress {
 	height: 8px;
 	overflow: hidden;
-	background-color: var(--heatbox-surface);
-	border: 1px solid var(--heatbox-border);
+	background-color: var(--heatbox-surface-muted);
 	border-radius: 999px;
 }
 
@@ -128,13 +157,12 @@
 	transition: width 0.4s ease;
 }
 
-/* The image that was optimized last */
 .mediatk-bulk-current {
 	display: flex;
 	align-items: center;
-	gap: 16px;
-	margin-top: 16px;
-	padding: 12px;
+	gap: 20px;
+	margin-top: 20px;
+	padding: 16px;
 	background-color: var(--heatbox-surface);
 	border: 1px solid var(--heatbox-border);
 	border-radius: var(--heatbox-radius-small);
@@ -142,45 +170,134 @@
 
 .mediatk-bulk-current-image {
 	flex-shrink: 0;
-	width: 64px;
-	height: 64px;
+	width: 112px;
+	height: 112px;
 	object-fit: cover;
 	border-radius: var(--heatbox-radius-small);
-	animation: mediatkSquash 0.5s ease;
+	animation: mediatkSquash 0.4s ease;
 }
 
 .mediatk-bulk-current-info {
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
 	min-width: 0;
+	flex-grow: 1;
 }
 
 .mediatk-bulk-current-title {
+	display: block;
+	margin-bottom: 10px;
 	overflow: hidden;
+	font-size: 12px;
+	color: var(--heatbox-text-muted);
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.mediatk-bulk-current-dimensions,
-.mediatk-bulk-current-bytes {
+.mediatk-bulk-compare {
+	display: grid;
+	gap: 10px;
+	margin: 0;
+}
+
+.mediatk-bulk-compare > div {
+	display: grid;
+	grid-template-columns: 90px 1fr;
+	align-items: center;
+	gap: 12px;
+}
+
+.mediatk-bulk-compare dt {
+	font-size: 12px;
 	color: var(--heatbox-text-muted);
 }
 
-.mediatk-bulk-saved {
-	margin: 12px 0 0;
+.mediatk-bulk-compare dd {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	font-size: 16px;
+	font-variant-numeric: tabular-nums;
+}
+
+.mediatk-bulk-compare .mediatk-before {
+	color: var(--heatbox-text-muted);
+	text-decoration: line-through;
+}
+
+.mediatk-bulk-compare .mediatk-arrow {
+	color: var(--heatbox-text-muted);
+}
+
+.mediatk-bulk-compare strong {
 	font-weight: 600;
+	color: var(--heatbox-text);
+}
+
+.mediatk-badge {
+	padding: 2px 8px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #00733a;
+	background-color: #e3f6ea;
+	border-radius: 999px;
+}
+
+/* Done */
+.mediatk-bulk-done {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	margin-top: 24px;
+	padding: 16px;
+	background-color: #f0faf4;
+	border: 1px solid #c4e8d1;
+	border-radius: var(--heatbox-radius-small);
+}
+
+.mediatk-bulk-done .dashicons {
+	width: 28px;
+	height: 28px;
+	font-size: 28px;
+	color: #00a32a;
+}
+
+.mediatk-bulk-done div {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.mediatk-bulk-done-title {
+	font-size: 16px;
+}
+
+.mediatk-bulk-done-saved {
+	font-size: 16px;
+	font-weight: 600;
+	color: #00733a;
+}
+
+.mediatk-bulk-done-counts {
+	color: var(--heatbox-text-muted);
 }
 
 @keyframes mediatkSquash {
 	from {
-		transform: scale(1.15);
-		opacity: 0.4;
+		transform: scale(1.12);
+		opacity: 0.3;
 	}
 
 	to {
 		transform: scale(1);
 		opacity: 1;
+	}
+}
+
+@media screen and (max-width: 600px) {
+	.mediatk-bulk-current {
+		flex-direction: column;
+		align-items: flex-start;
 	}
 }
 

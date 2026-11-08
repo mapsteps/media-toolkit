@@ -82,27 +82,32 @@
 		toggle.addEventListener('change', updateMaxSize);
 	}
 
-	// Bulk optimize existing images, a few at a time.
-	var bulkButton = document.querySelector('.mediatk-bulk-button');
-	var resumeButton = document.querySelector('.mediatk-bulk-resume');
-	var bulkStatus = document.querySelector('.mediatk-bulk-status');
+	// Bulk optimize existing images, one at a time so the site stays responsive.
+	var box = document.querySelector('.mediatk-bulk-metabox');
 
-	if (!bulkButton || !resumeButton || !bulkStatus || !window.mediaToolkit) return;
+	if (!box || !window.mediaToolkit) return;
 
 	var i18n = window.mediaToolkit.i18n;
 	var storageKey = 'mediatoolkitBulkRun';
-	var batchSize = 3;
+	var minDelay = 400;
 
-	var bulkRunning = document.querySelector('.mediatk-bulk-running');
-	var progressWrap = document.querySelector('.mediatk-bulk-progress');
-	var progress = document.querySelector('.mediatk-progress');
-	var progressBar = document.querySelector('.mediatk-progress-bar');
-	var current = document.querySelector('.mediatk-bulk-current');
-	var currentImage = document.querySelector('.mediatk-bulk-current-image');
-	var currentTitle = document.querySelector('.mediatk-bulk-current-title');
-	var currentDimensions = document.querySelector('.mediatk-bulk-current-dimensions');
-	var currentBytes = document.querySelector('.mediatk-bulk-current-bytes');
-	var saved = document.querySelector('.mediatk-bulk-saved');
+	function el(selector) {
+		return box.querySelector(selector);
+	}
+
+	var bulkButton = el('.mediatk-bulk-button');
+	var resumeButton = el('.mediatk-bulk-resume');
+	var bulkStatus = el('.mediatk-bulk-status');
+	var confirmBox = el('.mediatk-bulk-confirm');
+	var bulkRunning = el('.mediatk-bulk-running');
+	var progressWrap = el('.mediatk-bulk-progress');
+	var progress = el('.mediatk-progress');
+	var progressBar = el('.mediatk-progress-bar');
+	var count = el('.mediatk-bulk-count');
+	var saved = el('.mediatk-bulk-saved');
+	var current = el('.mediatk-bulk-current');
+	var currentImage = el('.mediatk-bulk-current-image');
+	var done = el('.mediatk-bulk-done');
 
 	function format(text, values) {
 		values.forEach(function (value, index) {
@@ -124,6 +129,12 @@
 		}
 
 		return (unit ? bytes.toFixed(1) : bytes) + ' ' + units[unit];
+	}
+
+	function wait(ms) {
+		return new Promise(function (resolve) {
+			setTimeout(resolve, ms);
+		});
 	}
 
 	function request(action, data) {
@@ -179,8 +190,7 @@
 	function setRunning(isRunning) {
 		bulkButton.disabled = isRunning;
 		resumeButton.disabled = isRunning;
-
-		if (bulkRunning) bulkRunning.hidden = !isRunning;
+		bulkRunning.hidden = !isRunning;
 
 		if (isRunning) {
 			window.addEventListener('beforeunload', preventLeaving);
@@ -195,15 +205,15 @@
 		progressWrap.hidden = false;
 		progressBar.style.width = percent + '%';
 		progress.setAttribute('aria-valuenow', percent);
-		saved.textContent = format(i18n.saved, [formatBytes(run.saved)]);
+		count.textContent = format(i18n.count, [run.index, run.ids.length]);
+		saved.textContent = formatBytes(run.saved);
 	}
 
 	function showImage(image) {
-		var dimensions = image.after.width + ' × ' + image.after.height;
-
-		if (image.before.width !== image.after.width || image.before.height !== image.after.height) {
-			dimensions = image.before.width + ' × ' + image.before.height + ' → ' + dimensions;
-		}
+		var before = image.before;
+		var after = image.after;
+		var percent = before.bytes ? Math.round(((before.bytes - after.bytes) / before.bytes) * 100) : 0;
+		var badge = el('.mediatk-bulk-percent');
 
 		current.hidden = false;
 
@@ -212,47 +222,71 @@
 		void currentImage.offsetWidth;
 		currentImage.style.animation = '';
 		currentImage.src = image.thumbnail;
-		currentTitle.textContent = image.title;
-		currentDimensions.textContent = dimensions;
-		currentBytes.textContent = formatBytes(image.before.bytes) + ' → ' + formatBytes(image.after.bytes);
+
+		var resized = before.width !== after.width || before.height !== after.height;
+		var smaller = before.bytes > after.bytes;
+
+		el('.mediatk-bulk-current-title').textContent = image.title;
+		el('.mediatk-bulk-dimensions-before').textContent = before.width + ' × ' + before.height;
+		el('.mediatk-bulk-dimensions-after').textContent = after.width + ' × ' + after.height;
+		el('.mediatk-bulk-bytes-before').textContent = formatBytes(before.bytes);
+		el('.mediatk-bulk-bytes-after').textContent = formatBytes(after.bytes);
+
+		// Only show "before →" if something changed.
+		el('.mediatk-bulk-dimensions-before').hidden = !resized;
+		el('.mediatk-bulk-dimensions-before + .mediatk-arrow').hidden = !resized;
+		el('.mediatk-bulk-bytes-before').hidden = !smaller;
+		el('.mediatk-bulk-bytes-before + .mediatk-arrow').hidden = !smaller;
+
+		badge.textContent = '−' + percent + '%';
+		badge.hidden = percent <= 0;
+	}
+
+	function showDone(run) {
+		progressWrap.hidden = true;
+		current.hidden = true;
+		done.hidden = false;
+		bulkStatus.textContent = '';
+
+		el('.mediatk-bulk-done-saved').textContent = run.saved > 0 ? format(i18n.total, [formatBytes(run.saved)]) : i18n.already;
+		el('.mediatk-bulk-done-counts').textContent = format(i18n.done, [run.totals.optimized, run.totals.skipped, run.totals.failed]);
 	}
 
 	function start(run) {
 		resumeButton.hidden = true;
+		done.hidden = true;
+		bulkStatus.textContent = i18n.running;
 		setRunning(true);
 
 		function next() {
 			showProgress(run);
 
 			if (run.index >= run.ids.length) {
-				var totals = run.totals;
-
-				bulkStatus.textContent = format(i18n.done, [totals.optimized, totals.skipped, totals.failed]);
-				saved.textContent = format(i18n.total, [formatBytes(run.saved)]);
+				showDone(run);
 				clearRun();
 				return;
 			}
 
-			bulkStatus.textContent = format(i18n.progress, [run.index, run.ids.length]);
+			var startedAt = Date.now();
 
-			var batch = run.ids.slice(run.index, run.index + batchSize);
+			return request('mediatoolkit_bulk_optimize', [run.ids[run.index]])
+				.then(function (result) {
+					run.totals.optimized += result.optimized;
+					run.totals.skipped += result.skipped;
+					run.totals.failed += result.failed;
 
-			return request('mediatoolkit_bulk_optimize', batch).then(function (result) {
-				run.totals.optimized += result.optimized;
-				run.totals.skipped += result.skipped;
-				run.totals.failed += result.failed;
+					result.images.forEach(function (image) {
+						run.saved += image.before.bytes - image.after.bytes;
+						showImage(image);
+					});
 
-				result.images.forEach(function (image) {
-					run.saved += image.before.bytes - image.after.bytes;
-				});
+					run.index++;
+					saveRun(run);
 
-				if (result.images.length) showImage(result.images[result.images.length - 1]);
-
-				run.index += batch.length;
-				saveRun(run);
-
-				return next();
-			});
+					// Give each image a moment on screen and leave room for other requests.
+					return wait(Math.max(0, minDelay - (Date.now() - startedAt)));
+				})
+				.then(next);
 		}
 
 		return Promise.resolve(next())
@@ -266,11 +300,25 @@
 	}
 
 	bulkButton.addEventListener('click', function () {
-		if (!window.confirm(i18n.confirm)) return;
-
-		clearRun();
+		confirmBox.hidden = false;
+		bulkButton.hidden = true;
 		resumeButton.hidden = true;
+		el('.mediatk-bulk-confirm-yes').focus();
+	});
+
+	el('.mediatk-bulk-confirm-no').addEventListener('click', function () {
+		confirmBox.hidden = true;
+		bulkButton.hidden = false;
+		resumeButton.hidden = !loadRun();
+		bulkButton.focus();
+	});
+
+	el('.mediatk-bulk-confirm-yes').addEventListener('click', function () {
+		confirmBox.hidden = true;
+		bulkButton.hidden = false;
 		current.hidden = true;
+		done.hidden = true;
+		clearRun();
 		setRunning(true);
 		bulkStatus.textContent = i18n.starting;
 

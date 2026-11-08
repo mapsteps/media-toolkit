@@ -71,19 +71,18 @@ class MediaToolkitSetup {
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'mediatoolkit_bulk' ),
 				'i18n'    => array(
-					'confirm'  => __( 'This overwrites image files on your server. Did you back up your uploads folder?', 'media-toolkit' ),
 					'starting' => __( 'Looking for images…', 'media-toolkit' ),
+					'running'  => __( 'Optimizing…', 'media-toolkit' ),
 					/* translators: 1: number of processed images, 2: total number of images. */
-					'progress' => __( 'Optimizing… %1$d of %2$d', 'media-toolkit' ),
+					'count'    => __( '%1$d of %2$d', 'media-toolkit' ),
 					/* translators: 1: optimized images, 2: skipped images, 3: failed images. */
-					'done'     => __( 'Done! %1$d optimized, %2$d skipped, %3$d failed.', 'media-toolkit' ),
+					'done'     => __( '%1$d optimized, %2$d skipped, %3$d failed.', 'media-toolkit' ),
 					'none'     => __( 'No images found.', 'media-toolkit' ),
+					'already'  => __( 'No disk space saved. Your images were already small, or the image quality is now higher than before.', 'media-toolkit' ),
 					'error'    => __( 'Something went wrong. You can resume where it stopped.', 'media-toolkit' ),
 					'failed'   => __( 'Something went wrong. Please reload the page and try again.', 'media-toolkit' ),
 					/* translators: 1: number of processed images, 2: total number of images. */
 					'stopped'  => __( 'The last run stopped at %1$d of %2$d images.', 'media-toolkit' ),
-					/* translators: %s: saved disk space, e.g. "12.4 MB". */
-					'saved'    => __( 'Saved so far: %s', 'media-toolkit' ),
 					/* translators: %s: saved disk space, e.g. "12.4 MB". */
 					'total'    => __( 'Saved %s of disk space.', 'media-toolkit' ),
 				),
