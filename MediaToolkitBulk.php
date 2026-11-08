@@ -409,7 +409,7 @@ class MediaToolkitBulk {
 
 		$backups = $this->backup_sizes( $dir, $old_sizes );
 
-		limit_quality( $editor, $source );
+		limit_quality( $editor, $source, get_saved_quality( $attachment_id ) );
 
 		// The sizes get the format of the "full" size, e.g. WebP if the image was converted on upload.
 		$source_type = wp_check_filetype( $source );

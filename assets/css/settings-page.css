@@ -361,6 +361,39 @@ span.mediatk-log-thumb {
 	color: #8a2424;
 }
 
+.mediatk-log-stats {
+	display: grid;
+	grid-template-columns: minmax(0, 190px) minmax(0, 170px);
+	gap: 24px;
+	margin-top: 4px;
+}
+
+.mediatk-log-stat {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	font-size: 13px;
+	color: var(--heatbox-text);
+	white-space: nowrap;
+}
+
+.mediatk-log-stat-label {
+	font-size: 11px;
+	color: var(--heatbox-text-muted);
+}
+
+.mediatk-bulk-done-note {
+	margin-top: 6px;
+	color: var(--heatbox-text-muted);
+}
+
+@media screen and (max-width: 600px) {
+	.mediatk-log-stats {
+		grid-template-columns: 1fr;
+		gap: 4px;
+	}
+}
+
 .mediatk-log-row .mediatk-badge {
 	flex-shrink: 0;
 }

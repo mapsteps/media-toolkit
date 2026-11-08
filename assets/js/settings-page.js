@@ -246,6 +246,23 @@
 		return { text: i18n.noChange, className: ' is-neutral' };
 	}
 
+	// A labelled value, e.g. "File size" above "521 KB → 426 KB".
+	function stat(label, value) {
+		var wrap = document.createElement('span');
+		var labelEl = document.createElement('span');
+		var valueEl = document.createElement('span');
+
+		wrap.className = 'mediatk-log-stat';
+		labelEl.className = 'mediatk-log-stat-label';
+		labelEl.textContent = label;
+		valueEl.textContent = value;
+
+		wrap.appendChild(labelEl);
+		wrap.appendChild(valueEl);
+
+		return wrap;
+	}
+
 	// Add an image to the list below the current one, newest on top.
 	function addRow(image) {
 		var failed = 'failed' === image.status;
@@ -279,7 +296,14 @@
 		title.textContent = image.title || format(i18n.image, [image.id]);
 
 		meta.className = 'mediatk-log-meta';
-		meta.textContent = failed ? image.reason : dimensionsText(image) + ' · ' + bytesText(image);
+
+		if (failed) {
+			meta.textContent = image.reason;
+		} else {
+			meta.classList.add('mediatk-log-stats');
+			meta.appendChild(stat(i18n.dimensions, dimensionsText(image)));
+			meta.appendChild(stat(i18n.fileSize, bytesText(image)));
+		}
 
 		badge.className = 'mediatk-badge' + result.className;
 		badge.textContent = result.text;
@@ -375,6 +399,11 @@
 
 		el('.mediatk-bulk-done-saved').textContent = summary;
 		done.classList.toggle('is-bigger', run.saved < 0);
+
+		var note = el('.mediatk-bulk-done-note');
+
+		note.textContent = 1 === run.grew ? i18n.grewOne : run.grew ? format(i18n.grewNote, [run.grew]) : '';
+		note.hidden = !run.grew;
 		el('.mediatk-bulk-done-counts').textContent = format(i18n.done, [run.totals.optimized, run.totals.skipped, run.totals.failed]);
 	}
 
@@ -408,6 +437,8 @@
 						}
 
 						run.saved += image.before.bytes - image.after.bytes;
+
+						if (image.after.bytes > image.before.bytes) run.grew = (run.grew || 0) + 1;
 						showImage(image);
 					});
 

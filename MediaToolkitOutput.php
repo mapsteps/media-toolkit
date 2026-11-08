@@ -137,10 +137,11 @@ class MediaToolkitOutput {
 	 *
 	 * @param string $path          The image path.
 	 * @param int    $max_dimension The max width or height.
+	 * @param int    $known_quality The quality the image was saved with, if known.
 	 *
-	 * @return array|false The saved image data (path, width, height ...) or false if nothing was changed.
+	 * @return array|false The saved image data (path, width, height, quality ...) or false if nothing was changed.
 	 */
-	public function downscale_image( $path, $max_dimension ) {
+	public function downscale_image( $path, $max_dimension, $known_quality = 0 ) {
 
 		if ( ! $path || ! file_exists( $path ) ) {
 			return false;
@@ -162,7 +163,7 @@ class MediaToolkitOutput {
 			return false;
 		}
 
-		limit_quality( $editor, $path );
+		limit_quality( $editor, $path, $known_quality );
 
 		$filetype = wp_check_filetype( $path );
 		$result   = save_without_conversion(
@@ -171,7 +172,13 @@ class MediaToolkitOutput {
 			}
 		);
 
-		return is_wp_error( $result ) ? false : $result;
+		if ( is_wp_error( $result ) ) {
+			return false;
+		}
+
+		$result['quality'] = $editor->get_quality();
+
+		return $result;
 
 	}
 
@@ -189,13 +196,15 @@ class MediaToolkitOutput {
 	 */
 	public function replace_original_image( $metadata, $attachment_id, $context = 'create' ) {
 
-		if ( 'create' !== $context || ! is_array( $metadata ) ) {
+		if ( 'create' !== $context || ! is_array( $metadata ) || ! is_resizable_image( $attachment_id ) ) {
 			return $metadata;
 		}
 
+		$this->remember_upload_quality( $attachment_id, $metadata );
+
 		$max_dimension = get_max_dimension();
 
-		if ( ! $max_dimension || ! is_resizable_image( $attachment_id ) ) {
+		if ( ! $max_dimension ) {
 			return $metadata;
 		}
 
@@ -204,6 +213,29 @@ class MediaToolkitOutput {
 		do_action( 'mediatoolkit_after_replace_original_image', $attachment_id, $metadata );
 
 		return $metadata;
+
+	}
+
+	/**
+	 * Remember the quality of a new upload's "full" size, so it's never saved with a higher quality later.
+	 *
+	 * If WordPress saved the "full" size itself (scaled, rotated or converted to WebP), it used the quality setting.
+	 * Otherwise it's the uploaded file, where only JPEGs tell us their quality.
+	 *
+	 * @param int   $attachment_id The attachment ID.
+	 * @param array $metadata      The attachment metadata.
+	 */
+	private function remember_upload_quality( $attachment_id, $metadata ) {
+
+		$full_path = get_attached_file( $attachment_id );
+
+		if ( ! empty( $metadata['original_image'] ) ) {
+			$filetype = wp_check_filetype( $full_path );
+			save_quality( $attachment_id, get_quality_setting( $filetype['type'] ) );
+			return;
+		}
+
+		save_quality( $attachment_id, get_jpeg_quality( $full_path ) );
 
 	}
 
@@ -228,9 +260,11 @@ class MediaToolkitOutput {
 			$this->downscale_image( $original_path, $max_dimension );
 		}
 
-		$result = $this->downscale_image( $full_path, $max_dimension );
+		$result = $this->downscale_image( $full_path, $max_dimension, get_saved_quality( $attachment_id ) );
 
 		if ( $result ) {
+			save_quality( $attachment_id, $result['quality'] );
+
 			$metadata['width']  = $result['width'];
 			$metadata['height'] = $result['height'];
 

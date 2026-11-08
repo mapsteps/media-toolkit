@@ -173,17 +173,65 @@ function get_jpeg_quality( $path ) {
 }
 
 /**
+ * Get the quality WordPress uses to save an image format, including the plugin's quality setting.
+ *
+ * @param string $mime_type The mime type.
+ * @return int
+ */
+function get_quality_setting( $mime_type ) {
+
+	$quality = in_array( $mime_type, array( 'image/webp', 'image/avif' ), true ) ? 86 : 82;
+	$quality = apply_filters( 'wp_editor_set_quality', $quality, $mime_type );
+
+	if ( 'image/jpeg' === $mime_type ) {
+		$quality = apply_filters( 'jpeg_quality', $quality, 'image_resize' );
+	}
+
+	return (int) $quality;
+
+}
+
+/**
+ * Get the quality an image's "full" size was saved with, as stored by the plugin.
+ *
+ * @param int $attachment_id The attachment ID.
+ * @return int The quality or 0 if unknown.
+ */
+function get_saved_quality( $attachment_id ) {
+
+	return absint( get_post_meta( $attachment_id, '_mediatoolkit_quality', true ) );
+
+}
+
+/**
+ * Store the quality an image's "full" size was saved with.
+ *
+ * @param int $attachment_id The attachment ID.
+ * @param int $quality       The quality, 0 if unknown.
+ */
+function save_quality( $attachment_id, $quality ) {
+
+	$quality = absint( $quality );
+
+	if ( $quality > 0 && $quality <= 100 ) {
+		update_post_meta( $attachment_id, '_mediatoolkit_quality', $quality );
+	}
+
+}
+
+/**
  * Don't save an image with a higher quality than it already has: it only adds bytes, not detail.
  *
- * @param \WP_Image_Editor $editor The image editor.
- * @param string           $path   The path of the image that was loaded.
+ * @param \WP_Image_Editor $editor        The image editor.
+ * @param string           $path          The path of the image that was loaded.
+ * @param int              $known_quality The quality the image was saved with, if known.
  */
-function limit_quality( $editor, $path ) {
+function limit_quality( $editor, $path, $known_quality = 0 ) {
 
-	$quality = get_jpeg_quality( $path );
+	$qualities = array_filter( array( absint( $known_quality ), get_jpeg_quality( $path ) ) );
 
-	if ( $quality && $quality < $editor->get_quality() ) {
-		$editor->set_quality( $quality );
+	if ( $qualities && min( $qualities ) < $editor->get_quality() ) {
+		$editor->set_quality( min( $qualities ) );
 	}
 
 }

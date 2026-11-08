@@ -75,6 +75,7 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 				<strong class="mediatk-bulk-done-title"><?php esc_html_e( 'All done!', 'media-toolkit' ); ?></strong>
 				<span class="mediatk-bulk-done-saved"></span>
 				<span class="mediatk-bulk-done-counts"></span>
+				<span class="mediatk-bulk-done-note" hidden></span>
 			</div>
 		</div>
 
