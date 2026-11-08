@@ -91,9 +91,9 @@ class MediaToolkitSetup {
 					'already'    => __( 'No disk space saved, your images were already optimized.', 'media-toolkit' ),
 					/* translators: %s: extra disk space, e.g. "12.4 MB". */
 					'grew'       => __( 'Your images now use %s more disk space.', 'media-toolkit' ),
-					'grewOne'    => __( '1 image got bigger. It was saved with a lower quality before, and a higher quality setting can\'t bring back detail, it only makes files bigger. Lower the quality setting to make it smaller again.', 'media-toolkit' ),
+					'grewOne'    => __( '1 image got bigger. This usually happens if it was saved with a lower quality before: a higher quality setting can\'t bring back detail, it only makes files bigger.', 'media-toolkit' ),
 					/* translators: %d: number of images. */
-					'grewNote'   => __( '%d images got bigger. They were saved with a lower quality before, and a higher quality setting can\'t bring back detail, it only makes files bigger. Lower the quality setting to make them smaller again.', 'media-toolkit' ),
+					'grewNote'   => __( '%d images got bigger. This usually happens if they were saved with a lower quality before: a higher quality setting can\'t bring back detail, it only makes files bigger.', 'media-toolkit' ),
 					'error'      => __( 'Something went wrong. You can resume where it stopped.', 'media-toolkit' ),
 					'failed'     => __( 'Something went wrong. Please reload the page and try again.', 'media-toolkit' ),
 					/* translators: 1: number of processed images, 2: total number of images. */

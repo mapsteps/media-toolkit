@@ -232,6 +232,47 @@ class MediaToolkitBulk {
 	}
 
 	/**
+	 * Keep the exact dimensions of existing image sizes if the new ones only differ by rounding.
+	 *
+	 * E.g. "large" was 1024×683 when it was created from the 6000px upload, but 1024×682 from the
+	 * downscaled 1400px original. A different size means a different filename & a duplicate file.
+	 *
+	 * @param array $sizes       The image sizes to create.
+	 * @param array $old_sizes   The existing image sizes from the metadata.
+	 * @param array $source_size The width & height of the image the sizes are created from.
+	 *
+	 * @return array The image sizes to create.
+	 */
+	private function keep_size_dimensions( $sizes, $old_sizes, $source_size ) {
+
+		foreach ( $sizes as $name => $size ) {
+			if ( ! empty( $size['crop'] ) || empty( $old_sizes[ $name ]['width'] ) || empty( $old_sizes[ $name ]['height'] ) ) {
+				continue;
+			}
+
+			$old_width  = absint( $old_sizes[ $name ]['width'] );
+			$old_height = absint( $old_sizes[ $name ]['height'] );
+			$dimensions = image_resize_dimensions( $source_size['width'], $source_size['height'], absint( $size['width'] ), absint( $size['height'] ), false );
+
+			if ( ! $dimensions || ( $dimensions[4] === $old_width && $dimensions[5] === $old_height ) ) {
+				continue;
+			}
+
+			// Off by a pixel or two: crop to the old dimensions, which is invisible.
+			if ( abs( $dimensions[4] - $old_width ) <= 2 && abs( $dimensions[5] - $old_height ) <= 2 ) {
+				$sizes[ $name ] = array(
+					'width'  => $old_width,
+					'height' => $old_height,
+					'crop'   => true,
+				);
+			}
+		}
+
+		return $sizes;
+
+	}
+
+	/**
 	 * Copy the existing image sizes, so they can be restored if the new ones are bigger.
 	 *
 	 * @param string $dir       The upload directory of the image.
@@ -407,6 +448,7 @@ class MediaToolkitBulk {
 			return $this->failed( $attachment_id, __( 'The image can\'t be opened. It may be damaged, or your server doesn\'t support this image format.', 'media-toolkit' ) );
 		}
 
+		$sizes   = $this->keep_size_dimensions( $sizes, $old_sizes, $editor->get_size() );
 		$backups = $this->backup_sizes( $dir, $old_sizes );
 
 		limit_quality( $editor, $source, get_saved_quality( $attachment_id ) );
