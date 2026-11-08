@@ -8,33 +8,35 @@ Stable tag: 2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Bulk optimize your images, convert them to WebP, set a max image size & image quality and rename image files.
+Bulk-optimize your images, convert uploads to WebP, set a max image resolution and change your image filenames.
 
 == Description ==
 
-**Media Toolkit** is a lightweight image optimizer for WordPress. Shrink the images you already have with one click, convert new uploads to WebP, stop huge photos from filling up your server and give your image files clean, SEO-friendly names.
+**Media Toolkit** makes your images smaller, so your website loads faster and your server doesn't fill up.
 
-No external services, no API keys, no limits. Everything runs on your own server, and all settings live on one simple page under *Media → Media Toolkit*.
+Optimize all the images you already have in one go, convert new uploads to WebP, stop huge photos from being stored at full size and give your images clean file names.
+
+Everything runs on your own server. No account, no API key, no limits. All settings are on one page under *Media → Media Toolkit*.
 
 == Features ==
 
 = 🧹 Bulk optimize your existing images =
-Shrink the images you already uploaded with one click. Watch every image get smaller, see how much disk space you saved, and pick up where you left off if you close the page. Your images keep their filenames & links, so nothing on your site breaks.
+Make existing images in your media library smaller with one click. See the progress for every image and how much disk space you saved.
 
 = 📐 Max image size =
-Stop huge photos from filling up your server. Images larger than your limit are downscaled automatically when you upload them.
+Set a max size in pixels. Large images are downscaled when you upload them, so huge photos don't fill up your server.
 
 = 🖼️ Convert to WebP =
-Save new uploads as WebP, which is usually 25-35% smaller than JPEG and makes your pages load faster.
+Save new JPEG & PNG uploads as WebP. WebP files are usually much smaller, so your pages load faster.
 
 = 🎚️ Image quality =
-Decide how much WordPress compresses your images, from smaller files to sharper images.
+Set the quality your images are saved with, from 1 to 100. A lower value makes your files smaller, a higher value keeps more detail. Leave it empty to keep the WordPress default (which is 82).
 
 = ✏️ Rename image files =
-Give your image files clean, SEO-friendly names, built from the original name, the upload date, the author and more.
+Give new uploads clean, SEO-friendly - or simply custom - filenames, built from the original name, the upload date, the author and more.
 
 = 🪶 Lightweight =
-No bloat and no external services. Media Toolkit uses WordPress' own image editor.
+No bloat and no external services. Media Toolkit uses WordPress' own image tools.
 
 == How to use it ==
 
@@ -79,68 +81,47 @@ If you like Media Toolkit, make sure to check out our other products:
 == Frequently Asked Questions ==
 
 = Is it safe to optimize my existing images? =
-Yes. Your images keep their filenames & links, so nothing on your site breaks, and no files are deleted. The images are overwritten though, so please back up your uploads folder first.
+Yes. Your existing images keep their filenames & links, so nothing on your site breaks, and no files are deleted. The images are overwritten though, so please back up your uploads folder first.
 
 = What does "Optimize existing images" do? =
-Every image and all its sizes (thumbnails etc.) are saved again with your settings: downscaled if they're larger than the max image size, and saved with your image quality. An image is never saved with a higher quality than it already has, and never replaced by a bigger file. Images are not renamed or converted to WebP, because that would change their links. The original upload that WordPress keeps next to big or converted images is only changed by the max image size.
+Every image and all its sizes (thumbnails etc.) are saved again with your settings: downscaled if they're larger than the max image size you've selected, and saved with your image quality. An image is never saved with a higher quality (or resolution) than it already has. Existing images are not renamed or converted to WebP, because that would change their links.
 
 = Do I have to keep the page open while it's optimizing? =
 Yes. If you close the page, the next time you open it you can resume where it stopped.
 
 = Will a higher quality setting make my existing images look better? =
-No. Detail that was lost when an image was saved can't be brought back, a higher quality only makes the file bigger. That's why Media Toolkit never saves an image with a higher quality than it already has. The only exception: WebP & AVIF images uploaded before Media Toolkit was active don't tell their quality. If the max image size makes them just a little smaller, they can end up with a bigger file. The results tell you if that happens.
+No. Detail that was lost when an image was uploaded can't be brought back, a higher quality only makes the file bigger. That's why Media Toolkit never saves an image with a higher quality than it already has. The only exception: for WebP & AVIF images uploaded before Media Toolkit was active, the plugin can’t tell their quality, so they’re saved with your quality setting. If that’s higher than before, the new file can be bigger. If that happens, the plugin will let you know during the bulk-optimization.
 
 = Why couldn't an image be optimized? =
-The results list every image that couldn't be optimized, with the reason and what you can do about it. For example, the image file may be missing on your server, or your server may have run out of memory with a very large image.
-
-= Why are larger image files still on my server after optimizing? =
-Image sizes larger than the max image size are no longer used, but their files aren't deleted. Your posts might still link to them, and deleting them would break those images.
+The plugin lists every image that couldn't be optimized, with the reason and what you can do about it. For example, the image file may be missing on your server, or your server may have run out of memory due to a very large image.
 
 = What's the difference to WordPress' big image size threshold? =
 Since WordPress 5.3, images larger than 2560px are scaled down, but WordPress still keeps the original image on your server. With *Limit image size* enabled, Media Toolkit replaces the original image with a downscaled version instead, so no full-size copy is kept.
 
-= What happens to the original when an image is converted to WebP? =
-The uploaded JPEG or PNG is kept as the original, just like WordPress does with big images. Your website uses the WebP version.
-
 = Why can't I enable "Convert to WebP"? =
 Your server doesn't support WebP yet. Ask your host to enable WebP support for Imagick or GD.
 
-= Which template tags can I use for the filename? =
-`{original_file_name}`, `{upload_date}`, `{upload_timestamp}`, `{random_id}`, `{author_first_name}`, `{author_last_name}` and `{author_full_name}`. Click a tag on the settings page to copy it.
-
-= Are other files renamed too? =
+= I've changed the filename for my images, are other files renamed too? =
 No. Only images are renamed. PDFs, videos and other files keep their filename.
 
 = Are images I already uploaded renamed? =
 No. Renaming only applies to new uploads, because it would change the links of your existing images.
-
-= Does it work with animated GIFs? =
-GIFs are not resized, so they keep their animation.
-
-= Is the EXIF data kept? =
-No. When an image is downscaled, its EXIF data (e.g. camera details & location) is removed.
 
 == Screenshots ==
 1. Settings page
 
 == Changelog ==
 = 2.0 November 08, 2026 =
-* New: Bulk optimize existing images (max image size & image quality) with live progress, before/after per image, saved disk space & resume
-* New: Images are never saved with a higher quality than they already have, so optimizing never makes them worse or bigger
-* New: Images that can't be optimized are listed with the reason and what to do about it
+* New: Bulk optimize existing images (max image resolution & image quality) with live progress, before/after per image, saved disk space & resume
 * New: Convert new JPEG & PNG uploads to WebP
 * New: Refreshed settings page design
-* Fixed: Security improvements (settings are sanitized before they're saved)
+* Tweak: Security improvements
 * Fixed: Image quality is limited to 1-100
 * Fixed: Wrong image dimensions & file size after the original image was replaced
-* Fixed: Image sizes larger than the max image size were still created (also for portrait photos)
+* Fixed: Image sizes larger than the max image size were still created
 * Fixed: Rotated photos kept a full-size copy when the max image size was set
 * Fixed: Animated GIFs lost their animation when the max image size was set
 * Fixed: Non-image files were renamed as well
-* Fixed: Images got an empty filename if nothing was left of the filename structure
-* Tweak: Template tags can be copied with the keyboard
-* Tweak: Settings page is more accessible (labels & descriptions)
-* Tweak: Smaller plugin (removed development files)
 * Tested up to WordPress 7.1
 = 1.0 November 30, 2023 =
 * Overall improvements
