@@ -46,7 +46,7 @@ Go to *Media → Media Toolkit*.
 
 **Quality:** enter a value from 1 to 100. Leave it empty to use the WordPress default (82).
 
-**Max image size:** enable *Replace original images* and enter the max size of the longer edge in pixels. New uploads that are larger are downscaled on upload.
+**Max image size:** enable *Replace original images* and enter the max size of the longer edge in pixels. New uploads that are larger are downscaled on upload, and no image sizes larger than that are created.
 
 ---------
 
@@ -111,6 +111,7 @@ No. When the original image is replaced, its EXIF data is removed.
 * Fixed: Security improvements (settings are sanitized before they're saved)
 * Fixed: Image quality is limited to 1-100
 * Fixed: Wrong image dimensions & file size after the original image was replaced
+* Fixed: Image sizes larger than the max image size were still created
 * Fixed: Non-image files were renamed as well
 * Fixed: Images got an empty filename if nothing was left of the filename structure
 * Tweak: Template tags can be copied with the keyboard

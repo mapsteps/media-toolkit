@@ -30,6 +30,7 @@ function setup() {
 function output() {
 
 	add_filter( 'big_image_size_threshold', '\MediaToolkit\change_big_image_threshold', 10000 );
+	add_filter( 'intermediate_image_sizes_advanced', '\MediaToolkit\remove_oversized_image_sizes' );
 	add_filter( 'wp_handle_upload_prefilter', '\MediaToolkit\modify_attachment_filename' );
 	add_filter( 'wp_editor_set_quality', '\MediaToolkit\set_compression_quality' );
 	add_filter( 'wp_generate_attachment_metadata', '\MediaToolkit\replace_original_image', 10, 3 );
@@ -125,6 +126,36 @@ function change_big_image_threshold( $threshold ) {
 	}
 
 	return $threshold;
+
+}
+
+/**
+ * Don't create image sizes larger than the max image size when the original image is being replaced.
+ *
+ * @param array $sizes The image sizes to create, with their width & height.
+ * @return array
+ */
+function remove_oversized_image_sizes( $sizes ) {
+
+	$settings = get_plugin_settings();
+
+	$replace_original = ! empty( $settings['replace_original_image'] );
+	$max_dimension    = isset( $settings['image_max_dimension'] ) ? absint( $settings['image_max_dimension'] ) : 0;
+
+	if ( ! $replace_original || ! $max_dimension || ! is_array( $sizes ) ) {
+		return $sizes;
+	}
+
+	foreach ( $sizes as $name => $size ) {
+		$width  = isset( $size['width'] ) ? absint( $size['width'] ) : 0;
+		$height = isset( $size['height'] ) ? absint( $size['height'] ) : 0;
+
+		if ( $width > $max_dimension || $height > $max_dimension ) {
+			unset( $sizes[ $name ] );
+		}
+	}
+
+	return $sizes;
 
 }
 
