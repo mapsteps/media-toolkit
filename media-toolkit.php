@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Media Toolkit
  * Plugin URI: https://mapsteps.com
- * Description: Bulk optimize your existing images, convert uploads to WebP, set a max image size & image quality and rename uploaded images.
+ * Description: Bulk optimize your images, convert them to WebP, set a max image size & image quality and rename image files.
  * Version: 2.0
  * Requires at least: 5.3
  * Requires PHP: 5.6
