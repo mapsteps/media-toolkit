@@ -30,7 +30,7 @@ return function ( $settings ) {
 	</label>
 
 	<p class="description" id="mediatoolkit-replace-description">
-		<?php esc_html_e( 'On upload, downscale the original image to the max image size below.', 'media-toolkit' ); ?>
+		<?php esc_html_e( 'Downscale new image uploads to the max image size below. The full-size original is replaced, not kept as a backup.', 'media-toolkit' ); ?>
 	</p>
 
 	<?php

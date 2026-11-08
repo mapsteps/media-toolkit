@@ -25,7 +25,7 @@ Create your own filename structure with template tags like `{original_file_name}
 WordPress saves generated images with a quality of 82%. Set your own value from 1 to 100 to make images smaller or sharper.
 
 = 📐 Max image size =
-Downscale the original image on upload, so a 6000px photo straight from your camera doesn't stay on your server.
+Set a max width or height for new uploads. Larger images are downscaled on upload, so a 6000px photo straight from your camera doesn't stay on your server and no image is ever larger than your limit.
 
 = 🪶 Lightweight =
 No bloat, no external services. Media Toolkit uses WordPress' own image editor.
@@ -46,7 +46,7 @@ Go to *Media → Media Toolkit*.
 
 **Quality:** enter a value from 1 to 100. Leave it empty to use the WordPress default (82).
 
-**Max image size:** enable *Replace original images* and enter the max size of the longer edge in pixels. New uploads that are larger are downscaled on upload, and no image sizes larger than that are created.
+**Max image size:** enable *Limit image size* and enter the max width or height in pixels. New uploads that are larger are downscaled on upload, and WordPress doesn't create any image sizes larger than that. The full-size original is replaced, not kept as a backup.
 
 ---------
 
@@ -94,7 +94,7 @@ No. Only images are renamed. PDFs, videos and other files keep their filename.
 Media Toolkit uses WordPress' own image editor. WordPress saves generated images (thumbnails and other sizes) with a quality of 82%. Media Toolkit lets you change that value for your whole site.
 
 = What's the difference to WordPress' big image size threshold? =
-Since WordPress 5.3, images larger than 2560px are scaled down, but WordPress still keeps the original image on your server. With *Replace original images* enabled, Media Toolkit replaces the original image with a downscaled version instead.
+Since WordPress 5.3, images larger than 2560px are scaled down, but WordPress still keeps the original image on your server. With *Limit image size* enabled, Media Toolkit replaces the original image with a downscaled version instead.
 
 = Does it work with images I already uploaded? =
 No. The settings apply to new uploads only.

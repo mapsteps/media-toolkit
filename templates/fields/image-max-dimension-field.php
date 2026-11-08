@@ -30,7 +30,7 @@ return function ( $settings ) {
 	/> px
 
 	<p class="description" id="mediatoolkit-max-size-description">
-		<?php esc_html_e( 'The max size of the longer edge in pixels.', 'media-toolkit' ); ?>
+		<?php esc_html_e( 'The max width or height in pixels. No image on your server will be larger than this, including the sizes WordPress creates. Applies to new uploads only.', 'media-toolkit' ); ?>
 	</p>
 
 	<?php

@@ -65,7 +65,7 @@
 		});
 	});
 
-	// Disable the max image size while "Replace original images" is off.
+	// Disable the max image size while "Limit image size" is off.
 	var toggle = document.getElementById('mediatoolkit_settings--replace-original-image');
 	var maxSize = document.getElementById('mediatoolkit_settings--image-max-dimension');
 

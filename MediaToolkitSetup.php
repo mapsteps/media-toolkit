@@ -116,7 +116,7 @@ class MediaToolkitSetup {
 		// Fields.
 		add_settings_field( 'rename-uploaded-image', __( 'Filename structure', 'media-toolkit' ), array( $this, 'rename_uploaded_image_field' ), 'mediatoolkit-rename-settings', 'mediatoolkit-rename-section', array( 'label_for' => 'mediatoolkit_settings--rename-uploaded-image' ) );
 		add_settings_field( 'compression-quality', __( 'Quality', 'media-toolkit' ), array( $this, 'compression_quality_field' ), 'mediatoolkit-quality-settings', 'mediatoolkit-quality-section', array( 'label_for' => 'mediatoolkit_settings--compression-quality' ) );
-		add_settings_field( 'replace-original-image', __( 'Replace original images', 'media-toolkit' ), array( $this, 'replace_original_image_field' ), 'mediatoolkit-replace-original-settings', 'mediatoolkit-replace-original-section', array( 'label_for' => 'mediatoolkit_settings--replace-original-image' ) );
+		add_settings_field( 'replace-original-image', __( 'Limit image size', 'media-toolkit' ), array( $this, 'replace_original_image_field' ), 'mediatoolkit-replace-original-settings', 'mediatoolkit-replace-original-section', array( 'label_for' => 'mediatoolkit_settings--replace-original-image' ) );
 		add_settings_field( 'image-max-dimension', __( 'Max image size', 'media-toolkit' ), array( $this, 'image_max_dimension_field' ), 'mediatoolkit-replace-original-settings', 'mediatoolkit-replace-original-section', array( 'label_for' => 'mediatoolkit_settings--image-max-dimension' ) );
 
 	}
