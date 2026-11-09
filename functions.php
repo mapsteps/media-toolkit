@@ -24,6 +24,97 @@ function setup() {
 	add_action( 'wp_ajax_mediatoolkit_bulk_ids', '\MediaToolkit\bulk_ids' );
 	add_action( 'wp_ajax_mediatoolkit_bulk_optimize', '\MediaToolkit\bulk_optimize' );
 
+	// Show the image quality next to the dimensions in the media library.
+	add_filter( 'wp_prepare_attachment_for_js', '\MediaToolkit\add_quality_to_attachment_js', 10, 2 );
+	add_action( 'print_media_templates', '\MediaToolkit\print_quality_template' );
+	add_action( 'attachment_submitbox_misc_actions', '\MediaToolkit\print_quality_submitbox', 20 );
+
+}
+
+/**
+ * Get the quality of an image's "full" size: stored by the plugin, or read from the JPEG.
+ *
+ * @param int $attachment_id The attachment ID.
+ * @return int The quality or 0 if unknown.
+ */
+function get_image_quality( $attachment_id ) {
+
+	$quality = get_saved_quality( $attachment_id );
+
+	return $quality ? $quality : get_jpeg_quality( (string) get_attached_file( $attachment_id ) );
+
+}
+
+/**
+ * Add the image quality to the attachment data of the media library.
+ *
+ * @param array    $response   The attachment data.
+ * @param \WP_Post $attachment The attachment.
+ *
+ * @return array
+ */
+function add_quality_to_attachment_js( $response, $attachment ) {
+
+	if ( isset( $response['type'] ) && 'image' === $response['type'] ) {
+		$response['mediatoolkitQuality'] = get_image_quality( $attachment->ID );
+	}
+
+	return $response;
+
+}
+
+/**
+ * Add "Quality: 82%" below the dimensions in the media library's attachment details.
+ */
+function print_quality_template() {
+
+	$label = esc_html__( 'Quality:', 'media-toolkit' );
+	?>
+	<script>
+	(function () {
+		var templates = {
+			'tmpl-attachment-details-two-column': '<div class="mediatoolkit-quality"><strong><?php echo esc_js( $label ); ?></strong> {{ data.mediatoolkitQuality }}%</div>',
+			'tmpl-attachment-details': '<div class="mediatoolkit-quality"><?php echo esc_js( $label ); ?> {{ data.mediatoolkitQuality }}%</div>'
+		};
+
+		Object.keys(templates).forEach(function (id) {
+			var template = document.getElementById(id);
+
+			if (!template) return;
+
+			template.textContent = template.textContent.replace(
+				/(<div class="dimensions">[\s\S]*?<\/div>)/,
+				'$1<# if ( data.mediatoolkitQuality ) { #>' + templates[id] + '<# } #>'
+			);
+		});
+	})();
+	</script>
+	<?php
+
+}
+
+/**
+ * Add "Quality: 82%" below the dimensions on the "Edit Media" screen.
+ *
+ * @param \WP_Post $post The attachment.
+ */
+function print_quality_submitbox( $post ) {
+
+	if ( ! wp_attachment_is_image( $post ) ) {
+		return;
+	}
+
+	$quality = get_image_quality( $post->ID );
+
+	if ( ! $quality ) {
+		return;
+	}
+	?>
+	<div class="misc-pub-section misc-pub-mediatoolkit-quality">
+		<?php esc_html_e( 'Quality:', 'media-toolkit' ); ?> <strong><?php echo esc_html( $quality ); ?>%</strong>
+	</div>
+	<?php
+
 }
 
 /**
@@ -154,21 +245,26 @@ function get_jpeg_quality( $path ) {
 	// The standard luminance table (JPEG spec, Annex K), in zigzag order like in the file.
 	$standard = array( 16, 11, 12, 14, 12, 10, 16, 14, 13, 14, 18, 17, 16, 19, 24, 40, 26, 24, 22, 22, 24, 49, 35, 37, 29, 40, 58, 51, 61, 60, 57, 51, 56, 55, 64, 72, 92, 78, 64, 68, 87, 69, 55, 56, 80, 109, 81, 87, 95, 98, 103, 104, 103, 62, 77, 113, 121, 112, 100, 120, 92, 101, 103, 99 );
 
-	$sum = 0;
+	// Find the quality whose table (as libjpeg builds it) is closest to the image's table.
+	$best_quality    = 0;
+	$best_difference = PHP_INT_MAX;
 
-	for ( $i = 1; $i <= 64; $i++ ) {
-		$sum += ord( $table[ $i ] );
+	for ( $quality = 1; $quality <= 100; $quality++ ) {
+		$scale      = $quality < 50 ? (int) floor( 5000 / $quality ) : 200 - $quality * 2;
+		$difference = 0;
+
+		foreach ( $standard as $i => $value ) {
+			$expected    = (int) max( 1, min( 255, floor( ( $value * $scale + 50 ) / 100 ) ) );
+			$difference += abs( ord( $table[ $i + 1 ] ) - $expected );
+		}
+
+		if ( $difference <= $best_difference ) {
+			$best_quality    = $quality;
+			$best_difference = $difference;
+		}
 	}
 
-	$scale = $sum * 100 / array_sum( $standard );
-
-	if ( $scale <= 0 ) {
-		return 100;
-	}
-
-	$quality = $scale <= 100 ? ( 200 - $scale ) / 2 : 5000 / $scale;
-
-	return (int) max( 1, min( 100, round( $quality ) ) );
+	return $best_quality;
 
 }
 
