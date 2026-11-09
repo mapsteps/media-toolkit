@@ -261,14 +261,17 @@ class MediaToolkitBulk {
 		}
 
 		// A cropped size: crop it again from the "full" size, as large as the max image size allows.
-		$editor = wp_get_image_editor( $full_path );
+		// If the "full" size is too small for that (e.g. a tall crop of a landscape photo), the crop would get
+		// another shape, so the size itself is downscaled instead.
+		$source = $width <= $full_size[0] && $height <= $full_size[1] ? $full_path : $path;
+		$editor = wp_get_image_editor( $source );
 
 		if ( is_wp_error( $editor ) || is_wp_error( $editor->resize( $width, $height, true ) ) ) {
 			return false;
 		}
 
 		// Never a higher quality than the image or the size already has.
-		limit_quality( $editor, $full_path, $known_quality );
+		limit_quality( $editor, $source, $known_quality );
 		limit_quality( $editor, $path );
 
 		$filetype = wp_check_filetype( $path );
