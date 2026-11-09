@@ -109,6 +109,7 @@ No. Renaming only applies to new uploads, because it would change the links of y
 
 == Screenshots ==
 1. Settings page
+2. Optimize existing images: live progress, before & after per image and saved disk space
 
 == Changelog ==
 = 1.1 November 09, 2026 =
