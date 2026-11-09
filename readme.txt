@@ -30,7 +30,7 @@ Set a max size in pixels. Large images are downscaled when you upload them, so h
 Save new JPEG & PNG uploads as WebP. WebP files are usually much smaller, so your pages load faster.
 
 = 🎚️ Image quality =
-Set the quality your images are saved with, from 1 to 100. A lower value makes your files smaller, a higher value keeps more detail. Leave it empty to keep the WordPress default (which is 82).
+Set the quality your images are saved with, from 1 to 100. A lower value makes your files smaller, a higher value keeps more detail. Leave it empty to keep the WordPress default (82).
 
 = ✏️ Rename image files =
 Give new uploads clean, SEO-friendly - or simply custom - filenames, built from the original name, the upload date, the author and more.

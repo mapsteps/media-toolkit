@@ -31,7 +31,7 @@ return function ( $settings ) {
 	/> %
 
 	<p class="description" id="mediatoolkit-quality-description">
-		<?php esc_html_e( 'The quality of generated images, from 1 to 100. Leave empty to use the WordPress default (82). Raising the quality doesn\'t improve existing images, it only makes new files bigger.', 'media-toolkit' ); ?>
+		<?php esc_html_e( 'The quality of generated images, from 1 to 100. Leave empty to use the WordPress default (82).', 'media-toolkit' ); ?>
 	</p>
 
 	<?php
