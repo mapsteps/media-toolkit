@@ -220,20 +220,6 @@
 		return before ? Math.round(((before - image.after.bytes) / before) * 100) : 0;
 	}
 
-	function dimensionsText(image) {
-		var before = image.before;
-		var after = image.after;
-		var text = after.width + ' × ' + after.height;
-
-		return before.width !== after.width || before.height !== after.height ? before.width + ' × ' + before.height + ' → ' + text : text;
-	}
-
-	function bytesText(image) {
-		var text = formatBytes(image.after.bytes);
-
-		return image.before.bytes !== image.after.bytes ? formatBytes(image.before.bytes) + ' → ' + text : text;
-	}
-
 	// "−43%" if the files got smaller, "+5%" if they got bigger, "No change" if they're the same.
 	function getBadge(image) {
 		var before = image.before.bytes;
@@ -246,19 +232,36 @@
 		return { text: i18n.noChange, className: ' is-neutral' };
 	}
 
-	// A labelled value, e.g. "File size" above "521 KB → 426 KB".
-	function stat(label, value) {
-		var wrap = document.createElement('span');
-		var labelEl = document.createElement('span');
-		var valueEl = document.createElement('span');
+	// A row like in the current image card: "File size   521 KB → 426 KB", the old value crossed out.
+	function compareRow(label, before, after, extra) {
+		var wrap = document.createElement('div');
+		var term = document.createElement('dt');
+		var value = document.createElement('dd');
+		var strong = document.createElement('strong');
 
-		wrap.className = 'mediatk-log-stat';
-		labelEl.className = 'mediatk-log-stat-label';
-		labelEl.textContent = label;
-		valueEl.textContent = value;
+		term.textContent = label;
+		strong.textContent = after;
 
-		wrap.appendChild(labelEl);
-		wrap.appendChild(valueEl);
+		if (before !== after) {
+			var old = document.createElement('span');
+			var arrow = document.createElement('span');
+
+			old.className = 'mediatk-before';
+			old.textContent = before;
+			arrow.className = 'mediatk-arrow';
+			arrow.setAttribute('aria-hidden', 'true');
+			arrow.textContent = '→';
+
+			value.appendChild(old);
+			value.appendChild(arrow);
+		}
+
+		value.appendChild(strong);
+
+		if (extra) value.appendChild(extra);
+
+		wrap.appendChild(term);
+		wrap.appendChild(value);
 
 		return wrap;
 	}
@@ -270,7 +273,7 @@
 		var thumb;
 		var info = document.createElement('div');
 		var title = document.createElement('a');
-		var meta = document.createElement('span');
+		var meta = document.createElement(failed ? 'span' : 'dl');
 		var badge = document.createElement('span');
 		var result = failed ? { text: i18n.failedTag, className: ' is-failed' } : getBadge(image);
 
@@ -295,18 +298,18 @@
 		title.rel = 'noopener';
 		title.textContent = image.title || format(i18n.image, [image.id]);
 
-		meta.className = 'mediatk-log-meta';
-
-		if (failed) {
-			meta.textContent = image.reason;
-		} else {
-			meta.classList.add('mediatk-log-stats');
-			meta.appendChild(stat(i18n.dimensions, dimensionsText(image)));
-			meta.appendChild(stat(i18n.fileSize, bytesText(image)));
-		}
-
 		badge.className = 'mediatk-badge' + result.className;
 		badge.textContent = result.text;
+
+		if (failed) {
+			meta.className = 'mediatk-log-meta';
+			meta.textContent = image.reason;
+		} else {
+			// Same layout as the current image card, the badge next to the file size.
+			meta.className = 'mediatk-bulk-compare';
+			meta.appendChild(compareRow(i18n.dimensions, image.before.width + ' × ' + image.before.height, image.after.width + ' × ' + image.after.height));
+			meta.appendChild(compareRow(i18n.fileSize, formatBytes(image.before.bytes), formatBytes(image.after.bytes), badge));
+		}
 
 		info.className = 'mediatk-log-info';
 		info.appendChild(title);
@@ -314,7 +317,8 @@
 
 		row.appendChild(thumb);
 		row.appendChild(info);
-		row.appendChild(badge);
+
+		if (failed) row.appendChild(badge);
 
 		logList.insertBefore(row, logList.firstChild);
 		log.hidden = false;
