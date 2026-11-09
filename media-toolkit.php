@@ -3,7 +3,7 @@
  * Plugin Name: Media Toolkit
  * Plugin URI: https://mapsteps.com
  * Description: Bulk-optimize your images, convert uploads to WebP, set a max image resolution and change your image filenames.
- * Version: 2.0
+ * Version: 1.1
  * Requires at least: 5.3
  * Requires PHP: 5.6
  * Author: David Vongries
@@ -21,7 +21,7 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 define( 'MEDIA_TOOLKIT_PLUGIN_DIR', rtrim( plugin_dir_path( __FILE__ ), '/' ) );
 define( 'MEDIA_TOOLKIT_PLUGIN_URL', rtrim( plugin_dir_url( __FILE__ ), '/' ) );
 define( 'MEDIA_TOOLKIT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
-define( 'MEDIA_TOOLKIT_PLUGIN_VERSION', '2.0' );
+define( 'MEDIA_TOOLKIT_PLUGIN_VERSION', '1.1' );
 
 require __DIR__ . '/MediaToolkitSetup.php';
 require __DIR__ . '/MediaToolkitOutput.php';

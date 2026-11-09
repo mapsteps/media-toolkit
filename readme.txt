@@ -4,7 +4,7 @@ Tags: image optimizer, bulk resize, webp, max image size, rename images
 Requires at least: 5.3
 Tested up to: 7.1
 Requires PHP: 5.6
-Stable tag: 2.0
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -111,7 +111,7 @@ No. Renaming only applies to new uploads, because it would change the links of y
 1. Settings page
 
 == Changelog ==
-= 2.0 November 08, 2026 =
+= 1.1 November 09, 2026 =
 * New: Bulk optimize existing images (max image resolution & image quality) with live progress, before/after per image, saved disk space & resume
 * New: Convert new JPEG & PNG uploads to WebP
 * New: Refreshed settings page design
