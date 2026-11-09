@@ -192,8 +192,11 @@
 		e.returnValue = '';
 	}
 
+	// Nothing to apply if neither a max image size nor a quality is saved.
+	var notConfigured = bulkButton.disabled;
+
 	function setRunning(isRunning) {
-		bulkButton.disabled = isRunning;
+		bulkButton.disabled = isRunning || notConfigured;
 		resumeButton.disabled = isRunning;
 		bulkRunning.hidden = !isRunning;
 

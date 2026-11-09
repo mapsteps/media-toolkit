@@ -6,6 +6,9 @@
  */
 
 defined( 'ABSPATH' ) || die( "Can't access directly" );
+
+$mediatoolkit_settings   = \MediaToolkit\get_plugin_settings();
+$mediatoolkit_configured = \MediaToolkit\get_max_dimension() || ! empty( $mediatoolkit_settings['compression_quality'] );
 ?>
 
 <div class="heatbox mediatk-bulk-metabox">
@@ -13,8 +16,8 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 	<div class="heatbox-content">
 		<p class="description"><?php esc_html_e( 'Apply your saved settings to the images you already uploaded:', 'media-toolkit' ); ?></p>
 		<ul class="mediatk-bulk-list">
-			<li><?php esc_html_e( 'If "Limit image size" is enabled: images larger than the max image size are downscaled, and the original copies WordPress keeps as a backup are removed.', 'media-toolkit' ); ?></li>
-			<li><?php esc_html_e( 'Images and all their sizes (thumbnails etc.) are saved again with the quality set above, but never with a higher quality than they already have, and never replaced by a bigger file.', 'media-toolkit' ); ?></li>
+			<li><?php esc_html_e( 'If "Limit image size" is enabled: every file larger than the max image size is downscaled (image sizes keep their filename, so links still work), and the backup copies WordPress keeps of the original are removed.', 'media-toolkit' ); ?></li>
+			<li><?php esc_html_e( 'Images are saved again with the quality set above, if that makes them smaller.', 'media-toolkit' ); ?></li>
 			<li><?php esc_html_e( 'Filenames & URLs stay the same. Images are not renamed or converted to WebP.', 'media-toolkit' ); ?></li>
 		</ul>
 		<p class="mediatk-bulk-warning">
@@ -22,9 +25,9 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 		</p>
 
 		<div class="mediatk-bulk-actions">
-			<button type="button" class="button mediatk-bulk-button"><?php esc_html_e( 'Optimize existing images', 'media-toolkit' ); ?></button>
+			<button type="button" class="button mediatk-bulk-button" <?php disabled( ! $mediatoolkit_configured ); ?>><?php esc_html_e( 'Optimize existing images', 'media-toolkit' ); ?></button>
 			<button type="button" class="button button-primary mediatk-bulk-resume" hidden><?php esc_html_e( 'Resume', 'media-toolkit' ); ?></button>
-			<span class="mediatk-bulk-status" role="status" aria-live="polite"></span>
+			<span class="mediatk-bulk-status" role="status" aria-live="polite"><?php echo $mediatoolkit_configured ? '' : esc_html__( 'Set a max image size or an image quality first.', 'media-toolkit' ); ?></span>
 		</div>
 
 		<div class="mediatk-bulk-confirm" hidden>
