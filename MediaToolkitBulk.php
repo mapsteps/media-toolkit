@@ -178,6 +178,18 @@ class MediaToolkitBulk {
 				continue;
 			}
 
+			// The real dimensions, this also repairs a size that was capped by an interrupted run.
+			$dims = wp_getimagesize( $dir . '/' . $file );
+
+			if ( $dims ) {
+				$size['width']  = $dims[0];
+				$size['height'] = $dims[1];
+			}
+
+			if ( isset( $size['filesize'] ) ) {
+				$size['filesize'] = wp_filesize( $dir . '/' . $file );
+			}
+
 			// The size name is taken by the re-created size: keep the old file under its own name.
 			$key = isset( $sizes[ $name ] ) ? 'mediatoolkit-' . pathinfo( $file, PATHINFO_FILENAME ) : $name;
 
