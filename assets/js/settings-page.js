@@ -153,14 +153,38 @@
 		});
 
 		return fetch(window.mediaToolkit.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
-			.then(function (response) {
-				return response.json();
-			})
+			.then(
+				function (response) {
+					// Logged out or the page is too old (expired nonce): retrying won't help.
+					if (400 === response.status || 403 === response.status) throw requestError('stop');
+
+					return response.json().catch(function () {
+						throw requestError('server');
+					});
+				},
+				function () {
+					throw requestError('network');
+				}
+			)
 			.then(function (json) {
-				if (!json || !json.success) throw new Error('Request failed');
+				if (0 === json || -1 === json) throw requestError('stop');
+				if (!json || !json.success) throw requestError('server');
 
 				return json.data;
 			});
+	}
+
+	/**
+	 * An error of a request.
+	 *
+	 * @param {string} kind "network" (no connection), "server" (the server failed, e.g. out of memory) or "stop".
+	 */
+	function requestError(kind) {
+		var error = new Error('Request failed: ' + kind);
+
+		error.kind = kind;
+
+		return error;
 	}
 
 	// The progress is stored in the browser, so an interrupted run can be resumed.
@@ -449,7 +473,9 @@
 						showImage(image);
 					});
 
-					failures = 0;
+					networkFailures = 0;
+					serverFailures = 0;
+					crashedInRow = 0;
 					run.index++;
 					saveRun(run);
 
@@ -457,25 +483,43 @@
 					return wait(Math.max(0, minDelay - (Date.now() - startedAt)));
 				})
 				.catch(function (err) {
-					failures++;
+					if ('stop' === err.kind) throw err;
 
-					// Several failures in a row: probably the connection, stop so it can be resumed.
-					if (failures >= 3) throw err;
+					// No connection: try the same image again, stop after a few tries so it can be resumed.
+					if ('network' === err.kind) {
+						networkFailures++;
 
-					// Retry once, then count the image as failed and move on, so one broken image can't block the run.
-					if (failures === 2) {
-						addFailedRow({ status: 'failed', id: run.ids[run.index], reason: i18n.crashed });
-						run.totals.failed++;
-						run.index++;
-						saveRun(run);
+						if (networkFailures >= 3) throw err;
+
+						return wait(2000 * networkFailures);
 					}
+
+					networkFailures = 0;
+					serverFailures++;
+
+					// The server failed on this image: retry once.
+					if (serverFailures < 2) return wait(1000);
+
+					serverFailures = 0;
+					crashedInRow++;
+
+					// Several images in a row: probably the server, not the images. Stop so it can be resumed.
+					if (crashedInRow >= 3) throw err;
+
+					// Count the image as failed and move on, so one broken image can't block the run.
+					addFailedRow({ status: 'failed', id: run.ids[run.index], reason: i18n.crashed });
+					run.totals.failed++;
+					run.index++;
+					saveRun(run);
 
 					return wait(1000);
 				})
 				.then(next);
 		}
 
-		var failures = 0;
+		var networkFailures = 0;
+		var serverFailures = 0;
+		var crashedInRow = 0;
 
 		return Promise.resolve(next())
 			.catch(function () {
