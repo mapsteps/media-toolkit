@@ -39,6 +39,11 @@ function setup() {
  */
 function get_image_quality( $attachment_id ) {
 
+	// PNGs are lossless, they have no quality.
+	if ( ! has_quality( $attachment_id ) ) {
+		return 0;
+	}
+
 	$quality = get_saved_quality( $attachment_id );
 
 	return $quality ? $quality : get_jpeg_quality( (string) get_attached_file( $attachment_id ) );
@@ -300,6 +305,21 @@ function get_saved_quality( $attachment_id ) {
 }
 
 /**
+ * Check whether an image is saved with a quality: JPEG, WebP & AVIF, not lossless PNG.
+ *
+ * @param int $attachment_id The attachment ID.
+ * @return bool
+ */
+function has_quality( $attachment_id ) {
+
+	// The "full" size's file, the mime type isn't updated yet while a new upload is converted to WebP.
+	$filetype = wp_check_filetype( (string) get_attached_file( $attachment_id ) );
+
+	return in_array( $filetype['type'], array( 'image/jpeg', 'image/webp', 'image/avif' ), true );
+
+}
+
+/**
  * Store the quality an image's "full" size was saved with.
  *
  * @param int $attachment_id The attachment ID.
@@ -309,7 +329,7 @@ function save_quality( $attachment_id, $quality ) {
 
 	$quality = absint( $quality );
 
-	if ( $quality > 0 && $quality <= 100 ) {
+	if ( $quality > 0 && $quality <= 100 && has_quality( $attachment_id ) ) {
 		update_post_meta( $attachment_id, '_mediatoolkit_quality', $quality );
 	}
 
