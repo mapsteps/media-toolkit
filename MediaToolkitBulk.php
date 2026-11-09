@@ -17,6 +17,13 @@ defined( 'ABSPATH' ) || die( "Can't access directly" );
 class MediaToolkitBulk {
 
 	/**
+	 * The images this request has locked, keyed by attachment ID.
+	 *
+	 * @var array
+	 */
+	private $locked = array();
+
+	/**
 	 * Check the capability of a bulk request.
 	 */
 	private function check_capability() {
@@ -552,7 +559,56 @@ class MediaToolkitBulk {
 	}
 
 	/**
+	 * Lock an image, so only one request optimizes it at a time.
+	 *
+	 * E.g. the visitor leaves the page while an image is optimized (the request keeps running)
+	 * and resumes right away. Two requests writing the same files can leave empty files behind.
+	 *
+	 * @param int $attachment_id The attachment ID.
+	 * @return bool Whether the image was locked. False if another request still optimizes it.
+	 */
+	private function lock( $attachment_id ) {
+
+		global $wpdb;
+
+		$name = 'mediatoolkit_lock_' . absint( $attachment_id );
+
+		// Wait for the other request, it usually takes a few seconds.
+		for ( $i = 0; $i < 30; $i++ ) {
+			// A lock older than 10 minutes is left over from a request that died.
+			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value < %d", $name, time() - 600 ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+
+			// Inserting the row is atomic: only one request can get the lock.
+			if ( $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %d, 'no')", $name, time() ) ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				$this->locked[ $attachment_id ] = true;
+				return true;
+			}
+
+			sleep( 1 );
+		}
+
+		return false;
+
+	}
+
+	/**
+	 * Unlock an image.
+	 *
+	 * @param int $attachment_id The attachment ID.
+	 */
+	private function unlock( $attachment_id ) {
+
+		global $wpdb;
+
+		$wpdb->delete( $wpdb->options, array( 'option_name' => 'mediatoolkit_lock_' . absint( $attachment_id ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+
+		unset( $this->locked[ $attachment_id ] );
+
+	}
+
+	/**
 	 * Downscale an image to the max image size & re-create its sizes with the current quality.
+	 * Only one request at a time optimizes an image.
 	 *
 	 * @param int $attachment_id The attachment ID.
 	 *
@@ -562,6 +618,47 @@ class MediaToolkitBulk {
 	 * }
 	 */
 	public function optimize( $attachment_id ) {
+
+		if ( ! is_resizable_image( $attachment_id ) ) {
+			return array( 'status' => 'skipped' );
+		}
+
+		if ( ! $this->lock( $attachment_id ) ) {
+			return $this->failed( $attachment_id, __( 'This image is being optimized in another browser tab or window. Please try again in a few minutes.', 'media-toolkit' ) );
+		}
+
+		// Also unlock if the request dies, e.g. because it ran out of memory.
+		register_shutdown_function( array( $this, 'unlock_on_shutdown' ), $attachment_id );
+
+		$result = $this->optimize_image( $attachment_id );
+
+		$this->unlock( $attachment_id );
+
+		return $result;
+
+	}
+
+	/**
+	 * Unlock an image when the request ends.
+	 *
+	 * @param int $attachment_id The attachment ID.
+	 */
+	public function unlock_on_shutdown( $attachment_id ) {
+
+		// Only if this request still holds the lock, another request may have locked it since.
+		if ( ! empty( $this->locked[ $attachment_id ] ) ) {
+			$this->unlock( $attachment_id );
+		}
+
+	}
+
+	/**
+	 * Downscale an image to the max image size & re-create its sizes with the current quality.
+	 *
+	 * @param int $attachment_id The attachment ID.
+	 * @return array See optimize().
+	 */
+	private function optimize_image( $attachment_id ) {
 
 		if ( ! is_resizable_image( $attachment_id ) ) {
 			return array( 'status' => 'skipped' );
