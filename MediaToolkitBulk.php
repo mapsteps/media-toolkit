@@ -150,47 +150,67 @@ class MediaToolkitBulk {
 	}
 
 	/**
-	 * Downscale existing image sizes that are larger than the max image size, in place.
+	 * Merge the re-created sizes with the existing ones.
+	 *
+	 * Existing size files that weren't re-created (e.g. larger than the max image size, or from a previous theme)
+	 * stay in the metadata. So WordPress still knows them and deletes them together with the image,
+	 * even if Media Toolkit isn't active anymore.
+	 *
+	 * @param array  $old_sizes The image sizes before optimizing.
+	 * @param array  $new_sizes The re-created image sizes.
+	 * @param string $dir       The upload directory of the image.
+	 *
+	 * @return array The image sizes.
+	 */
+	private function merge_sizes( $old_sizes, $new_sizes, $dir ) {
+
+		$sizes = $new_sizes;
+		$files = array();
+
+		foreach ( $new_sizes as $size ) {
+			$files[] = wp_basename( $size['file'] );
+		}
+
+		foreach ( $old_sizes as $name => $size ) {
+			$file = empty( $size['file'] ) ? '' : wp_basename( $size['file'] );
+
+			if ( ! $file || in_array( $file, $files, true ) || ! file_exists( $dir . '/' . $file ) ) {
+				continue;
+			}
+
+			// The size name is taken by the re-created size: keep the old file under its own name.
+			$key = isset( $sizes[ $name ] ) ? 'mediatoolkit-' . pathinfo( $file, PATHINFO_FILENAME ) : $name;
+
+			$sizes[ $key ] = $size;
+			$files[]       = $file;
+		}
+
+		return $sizes;
+
+	}
+
+	/**
+	 * Downscale image sizes that are larger than the max image size, in place.
 	 *
 	 * They keep their filename, so posts that link to them still work, but no file is larger than the max image size.
-	 * Sizes WordPress no longer knows about are remembered, so they're deleted together with the image.
 	 *
-	 * @param int    $attachment_id The attachment ID.
-	 * @param array  $metadata      The updated attachment metadata.
-	 * @param array  $old_sizes     The image sizes before optimizing.
+	 * @param array  $metadata      The attachment metadata.
 	 * @param string $full_path     The path of the "full" size, already downscaled.
 	 * @param int    $max_dimension The max width or height.
 	 *
 	 * @return array The updated metadata.
 	 */
-	private function cap_old_sizes( $attachment_id, $metadata, $old_sizes, $full_path, $max_dimension ) {
+	private function cap_sizes( $metadata, $full_path, $max_dimension ) {
 
 		$dir       = dirname( $full_path );
 		$full_size = wp_getimagesize( $full_path );
-		$kept      = get_kept_files( $attachment_id );
-		$current   = array();
 
-		if ( ! $full_size ) {
+		if ( ! $full_size || empty( $metadata['sizes'] ) || ! is_array( $metadata['sizes'] ) ) {
 			return $metadata;
 		}
 
-		$sizes = isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ? $metadata['sizes'] : array();
-
-		foreach ( $sizes as $name => $size ) {
-			$current[ wp_basename( $size['file'] ) ] = $name;
-		}
-
-		// The old sizes & the files kept in an earlier run (e.g. if the max image size was lowered since).
-		$files = $kept;
-
-		foreach ( $old_sizes as $size ) {
-			if ( ! empty( $size['file'] ) ) {
-				$files[] = wp_basename( $size['file'] );
-			}
-		}
-
-		foreach ( array_unique( $files ) as $file ) {
-			$path = $dir . '/' . $file;
+		foreach ( $metadata['sizes'] as $name => $size ) {
+			$path = $dir . '/' . wp_basename( $size['file'] );
 			$dims = file_exists( $path ) ? wp_getimagesize( $path ) : false;
 
 			if ( ! $dims || ( $dims[0] <= $max_dimension && $dims[1] <= $max_dimension ) ) {
@@ -199,24 +219,15 @@ class MediaToolkitBulk {
 
 			$capped = $this->cap_file( $path, $full_path, $full_size, $dims, $max_dimension );
 
-			if ( ! $capped ) {
-				continue;
-			}
+			if ( $capped ) {
+				$metadata['sizes'][ $name ]['width']  = $capped[0];
+				$metadata['sizes'][ $name ]['height'] = $capped[1];
 
-			if ( isset( $current[ $file ] ) ) {
-				// Still a size WordPress knows (e.g. from a previous theme): update its dimensions.
-				$metadata['sizes'][ $current[ $file ] ]['width']  = $capped[0];
-				$metadata['sizes'][ $current[ $file ] ]['height'] = $capped[1];
-
-				if ( isset( $metadata['sizes'][ $current[ $file ] ]['filesize'] ) ) {
-					$metadata['sizes'][ $current[ $file ] ]['filesize'] = wp_filesize( $path );
+				if ( isset( $metadata['sizes'][ $name ]['filesize'] ) ) {
+					$metadata['sizes'][ $name ]['filesize'] = wp_filesize( $path );
 				}
-			} else {
-				$kept[] = $file;
 			}
 		}
-
-		save_kept_files( $attachment_id, $kept );
 
 		return $metadata;
 
@@ -610,8 +621,7 @@ class MediaToolkitBulk {
 
 		$new_sizes = $this->keep_smaller_sizes( $dir, $new_sizes, $backups );
 
-		// Keep sizes that are no longer registered (e.g. from a previous theme). Old files are never deleted.
-		$metadata['sizes'] = array_merge( array_diff_key( $old_sizes, wp_get_registered_image_subsizes() ), $new_sizes );
+		$metadata['sizes'] = $this->merge_sizes( $old_sizes, $new_sizes, $dir );
 
 		// The "full" size wasn't downscaled: save it again with the quality setting (after the sizes, so they're made from the better image).
 		$downscaled = absint( $metadata['width'] ) !== $before['width'] || absint( $metadata['height'] ) !== $before['height'];
@@ -630,7 +640,7 @@ class MediaToolkitBulk {
 
 		if ( $max_dimension ) {
 			// Sizes larger than the max image size stay (posts may link to them), but downscaled.
-			$metadata = $this->cap_old_sizes( $attachment_id, $metadata, $old_sizes, $full_path, $max_dimension );
+			$metadata = $this->cap_sizes( $metadata, $full_path, $max_dimension );
 
 			// The original isn't kept as a backup (the sizes are already made from it).
 			$metadata = $output->remove_original( $attachment_id, $metadata );
