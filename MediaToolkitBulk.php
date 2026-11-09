@@ -472,7 +472,10 @@ class MediaToolkitBulk {
 			if ( isset( $backups[ $file ] ) && file_exists( $path ) && filesize( $backups[ $file ] ) < filesize( $path ) ) {
 				copy( $backups[ $file ], $path );
 				clearstatcache();
+			}
 
+			// Always the real size: image sizes can share a file (e.g. "large" & "medium_large" of a portrait photo).
+			if ( file_exists( $path ) ) {
 				$new_sizes[ $name ]['filesize'] = filesize( $path );
 			}
 		}
