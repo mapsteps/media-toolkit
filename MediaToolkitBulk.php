@@ -197,10 +197,11 @@ class MediaToolkitBulk {
 	 * @param array  $metadata      The attachment metadata.
 	 * @param string $full_path     The path of the "full" size, already downscaled.
 	 * @param int    $max_dimension The max width or height.
+	 * @param int    $known_quality The quality of the image, if known.
 	 *
 	 * @return array The updated metadata.
 	 */
-	private function cap_sizes( $metadata, $full_path, $max_dimension ) {
+	private function cap_sizes( $metadata, $full_path, $max_dimension, $known_quality = 0 ) {
 
 		$dir       = dirname( $full_path );
 		$full_size = wp_getimagesize( $full_path );
@@ -217,7 +218,7 @@ class MediaToolkitBulk {
 				continue;
 			}
 
-			$capped = $this->cap_file( $path, $full_path, $full_size, $dims, $max_dimension );
+			$capped = $this->cap_file( $path, $full_path, $full_size, $dims, $max_dimension, $known_quality );
 
 			if ( $capped ) {
 				$metadata['sizes'][ $name ]['width']  = $capped[0];
@@ -241,10 +242,11 @@ class MediaToolkitBulk {
 	 * @param array  $full_size     The width & height of the "full" size.
 	 * @param array  $dims          The width & height of the image size.
 	 * @param int    $max_dimension The max width or height.
+	 * @param int    $known_quality The quality of the image, if known.
 	 *
 	 * @return array|false The new width & height or false on failure.
 	 */
-	private function cap_file( $path, $full_path, $full_size, $dims, $max_dimension ) {
+	private function cap_file( $path, $full_path, $full_size, $dims, $max_dimension, $known_quality = 0 ) {
 
 		$scale  = $max_dimension / max( $dims[0], $dims[1] );
 		$width  = max( 1, (int) round( $dims[0] * $scale ) );
@@ -264,6 +266,10 @@ class MediaToolkitBulk {
 		if ( is_wp_error( $editor ) || is_wp_error( $editor->resize( $width, $height, true ) ) ) {
 			return false;
 		}
+
+		// Never a higher quality than the image or the size already has.
+		limit_quality( $editor, $full_path, $known_quality );
+		limit_quality( $editor, $path );
 
 		$filetype = wp_check_filetype( $path );
 		$result   = save_without_conversion(
@@ -643,7 +649,7 @@ class MediaToolkitBulk {
 
 		if ( $max_dimension ) {
 			// Sizes larger than the max image size stay (posts may link to them), but downscaled.
-			$metadata = $this->cap_sizes( $metadata, $full_path, $max_dimension );
+			$metadata = $this->cap_sizes( $metadata, $full_path, $max_dimension, get_saved_quality( $attachment_id ) );
 
 			// The original isn't kept as a backup (the sizes are already made from it).
 			$metadata = $output->remove_original( $attachment_id, $metadata );
