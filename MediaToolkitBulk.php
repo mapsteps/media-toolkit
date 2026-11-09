@@ -497,7 +497,8 @@ class MediaToolkitBulk {
 			$file = wp_basename( $size['file'] );
 			$path = $dir . '/' . $file;
 
-			if ( isset( $backups[ $file ] ) && file_exists( $path ) && filesize( $backups[ $file ] ) < filesize( $path ) ) {
+			// Never a broken old file (e.g. empty), even if it's smaller.
+			if ( isset( $backups[ $file ] ) && file_exists( $path ) && filesize( $backups[ $file ] ) < filesize( $path ) && wp_getimagesize( $backups[ $file ] ) ) {
 				copy( $backups[ $file ], $path );
 				clearstatcache();
 			}
