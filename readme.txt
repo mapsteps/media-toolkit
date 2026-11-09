@@ -1,4 +1,4 @@
-=== Media Toolkit - Bulk Image Optimizer, WebP, Max Image Size & Rename Image Files ===
+=== Media Toolkit - Image Optimizer, Resize & WebP Converter ===
 Contributors: davidvongries
 Tags: image optimizer, bulk resize, webp, max image size, rename images
 Requires at least: 5.3
