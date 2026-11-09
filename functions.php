@@ -24,10 +24,62 @@ function setup() {
 	add_action( 'wp_ajax_mediatoolkit_bulk_ids', '\MediaToolkit\bulk_ids' );
 	add_action( 'wp_ajax_mediatoolkit_bulk_optimize', '\MediaToolkit\bulk_optimize' );
 
+	// Delete the image sizes the plugin kept (downscaled) together with the image.
+	add_action( 'delete_attachment', '\MediaToolkit\delete_kept_files' );
+
 	// Show the image quality next to the dimensions in the media library.
 	add_filter( 'wp_prepare_attachment_for_js', '\MediaToolkit\add_quality_to_attachment_js', 10, 2 );
 	add_action( 'print_media_templates', '\MediaToolkit\print_quality_template' );
 	add_action( 'attachment_submitbox_misc_actions', '\MediaToolkit\print_quality_submitbox', 20 );
+
+}
+
+/**
+ * Get the image sizes the plugin kept after WordPress stopped using them (filenames).
+ *
+ * @param int $attachment_id The attachment ID.
+ * @return array
+ */
+function get_kept_files( $attachment_id ) {
+
+	$files = get_post_meta( $attachment_id, '_mediatoolkit_kept_files', true );
+
+	return is_array( $files ) ? $files : array();
+
+}
+
+/**
+ * Remember the image sizes the plugin kept after WordPress stopped using them.
+ *
+ * @param int   $attachment_id The attachment ID.
+ * @param array $files         The filenames.
+ */
+function save_kept_files( $attachment_id, $files ) {
+
+	$files = array_values( array_unique( array_map( 'wp_basename', $files ) ) );
+
+	if ( $files ) {
+		update_post_meta( $attachment_id, '_mediatoolkit_kept_files', $files );
+	}
+
+}
+
+/**
+ * Delete the image sizes the plugin kept, when the image is deleted.
+ *
+ * @param int $attachment_id The attachment ID.
+ */
+function delete_kept_files( $attachment_id ) {
+
+	$file = get_attached_file( $attachment_id );
+
+	if ( ! $file ) {
+		return;
+	}
+
+	foreach ( get_kept_files( $attachment_id ) as $kept_file ) {
+		wp_delete_file( path_join( dirname( $file ), wp_basename( $kept_file ) ) );
+	}
 
 }
 

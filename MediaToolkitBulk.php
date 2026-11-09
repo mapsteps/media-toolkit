@@ -150,6 +150,122 @@ class MediaToolkitBulk {
 	}
 
 	/**
+	 * Downscale existing image sizes that are larger than the max image size, in place.
+	 *
+	 * They keep their filename, so posts that link to them still work, but no file is larger than the max image size.
+	 * Sizes WordPress no longer knows about are remembered, so they're deleted together with the image.
+	 *
+	 * @param int    $attachment_id The attachment ID.
+	 * @param array  $metadata      The updated attachment metadata.
+	 * @param array  $old_sizes     The image sizes before optimizing.
+	 * @param string $full_path     The path of the "full" size, already downscaled.
+	 * @param int    $max_dimension The max width or height.
+	 *
+	 * @return array The updated metadata.
+	 */
+	private function cap_old_sizes( $attachment_id, $metadata, $old_sizes, $full_path, $max_dimension ) {
+
+		$dir       = dirname( $full_path );
+		$full_size = wp_getimagesize( $full_path );
+		$kept      = get_kept_files( $attachment_id );
+		$current   = array();
+
+		if ( ! $full_size ) {
+			return $metadata;
+		}
+
+		$sizes = isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ? $metadata['sizes'] : array();
+
+		foreach ( $sizes as $name => $size ) {
+			$current[ wp_basename( $size['file'] ) ] = $name;
+		}
+
+		// The old sizes & the files kept in an earlier run (e.g. if the max image size was lowered since).
+		$files = $kept;
+
+		foreach ( $old_sizes as $size ) {
+			if ( ! empty( $size['file'] ) ) {
+				$files[] = wp_basename( $size['file'] );
+			}
+		}
+
+		foreach ( array_unique( $files ) as $file ) {
+			$path = $dir . '/' . $file;
+			$dims = file_exists( $path ) ? wp_getimagesize( $path ) : false;
+
+			if ( ! $dims || ( $dims[0] <= $max_dimension && $dims[1] <= $max_dimension ) ) {
+				continue;
+			}
+
+			$capped = $this->cap_file( $path, $full_path, $full_size, $dims, $max_dimension );
+
+			if ( ! $capped ) {
+				continue;
+			}
+
+			if ( isset( $current[ $file ] ) ) {
+				// Still a size WordPress knows (e.g. from a previous theme): update its dimensions.
+				$metadata['sizes'][ $current[ $file ] ]['width']  = $capped[0];
+				$metadata['sizes'][ $current[ $file ] ]['height'] = $capped[1];
+
+				if ( isset( $metadata['sizes'][ $current[ $file ] ]['filesize'] ) ) {
+					$metadata['sizes'][ $current[ $file ] ]['filesize'] = wp_filesize( $path );
+				}
+			} else {
+				$kept[] = $file;
+			}
+		}
+
+		save_kept_files( $attachment_id, $kept );
+
+		return $metadata;
+
+	}
+
+	/**
+	 * Replace an image size with a downscaled version, same filename & format.
+	 *
+	 * @param string $path          The path of the image size.
+	 * @param string $full_path     The path of the "full" size, already downscaled.
+	 * @param array  $full_size     The width & height of the "full" size.
+	 * @param array  $dims          The width & height of the image size.
+	 * @param int    $max_dimension The max width or height.
+	 *
+	 * @return array|false The new width & height or false on failure.
+	 */
+	private function cap_file( $path, $full_path, $full_size, $dims, $max_dimension ) {
+
+		$scale  = $max_dimension / max( $dims[0], $dims[1] );
+		$width  = max( 1, (int) round( $dims[0] * $scale ) );
+		$height = max( 1, (int) round( $dims[1] * $scale ) );
+
+		$same_format = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) ) === strtolower( pathinfo( $full_path, PATHINFO_EXTENSION ) );
+		$same_shape  = abs( $dims[0] / $dims[1] - $full_size[0] / $full_size[1] ) < 0.01;
+
+		// Same image, just smaller: use the "full" size, which is already downscaled.
+		if ( $same_format && $same_shape && $full_size[0] <= $max_dimension && $full_size[1] <= $max_dimension ) {
+			return copy( $full_path, $path ) ? array( $full_size[0], $full_size[1] ) : false;
+		}
+
+		// A cropped size: crop it again from the "full" size, as large as the max image size allows.
+		$editor = wp_get_image_editor( $full_path );
+
+		if ( is_wp_error( $editor ) || is_wp_error( $editor->resize( $width, $height, true ) ) ) {
+			return false;
+		}
+
+		$filetype = wp_check_filetype( $path );
+		$result   = save_without_conversion(
+			function () use ( $editor, $path, $filetype ) {
+				return $editor->save( $path, $filetype['type'] );
+			}
+		);
+
+		return is_wp_error( $result ) ? false : array( $result['width'], $result['height'] );
+
+	}
+
+	/**
 	 * Get the filename the existing sizes are named after, e.g. "photo" for "photo-300x200.jpg".
 	 *
 	 * @param array $old_sizes The image sizes from the metadata.
@@ -512,8 +628,11 @@ class MediaToolkitBulk {
 			}
 		}
 
-		// With "Limit image size", the original isn't kept as a backup (the sizes are already made from it).
 		if ( $max_dimension ) {
+			// Sizes larger than the max image size stay (posts may link to them), but downscaled.
+			$metadata = $this->cap_old_sizes( $attachment_id, $metadata, $old_sizes, $full_path, $max_dimension );
+
+			// The original isn't kept as a backup (the sizes are already made from it).
 			$metadata = $output->remove_original( $attachment_id, $metadata );
 		}
 
