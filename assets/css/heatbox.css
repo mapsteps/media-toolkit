@@ -147,12 +147,24 @@ body {
 	margin-bottom: var(--heatbox-gap);
 }
 
+/* Three per row, e.g. a grid of modules: .heatbox-columns.is-three (two per row on medium screens) */
+.heatbox-columns.is-three {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .heatbox-columns > .heatbox {
 	margin-bottom: 0;
 }
 
+@media screen and (max-width: 1100px) {
+	.heatbox-columns.is-three {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
 @media screen and (max-width: 782px) {
-	.heatbox-columns {
+	.heatbox-columns,
+	.heatbox-columns.is-three {
 		grid-template-columns: 1fr;
 	}
 }
@@ -171,12 +183,14 @@ body {
 	}
 }
 
-/* Spacing utilities */
-.heatbox-margin-top {
+/* Spacing utilities (the second selector wins over ".heatbox p" inside a box) */
+.heatbox-margin-top,
+.heatbox .heatbox-margin-top {
 	margin-top: var(--heatbox-gap);
 }
 
-.heatbox-margin-bottom {
+.heatbox-margin-bottom,
+.heatbox .heatbox-margin-bottom {
 	margin-bottom: var(--heatbox-gap);
 }
 
@@ -232,6 +246,33 @@ body {
 
 .heatbox-header .logo-container .heatbox-logo-wide img {
 	width: 156px;
+}
+
+/* The logo keeps its size; the title wraps instead. */
+.heatbox-header .logo-container > div:last-child {
+	flex-shrink: 0;
+}
+
+@media screen and (max-width: 782px) {
+	.heatbox-header .logo-container {
+		gap: 16px;
+	}
+
+	.heatbox-header .logo-container img {
+		width: 56px;
+	}
+
+	.heatbox-header .logo-container .heatbox-logo-wide img {
+		width: 112px;
+	}
+
+	.heatbox-wrap .heatbox-header .title {
+		font-size: 26px;
+	}
+
+	.heatbox-wrap .heatbox-header .subtitle {
+		font-size: 16px;
+	}
 }
 
 /* Tabs: .heatbox-tab-nav (preferred) and legacy .tab-navigation */
@@ -344,7 +385,13 @@ body {
 	border-radius: 999px;
 }
 
-/* Status badges: <span class="heatbox-badge is-success">Active</span> (also is-error, is-warning, is-neutral) */
+/* Status badges: <span class="heatbox-badge is-success">Active</span> (also is-info, is-error, is-warning, is-neutral) */
+/* is-info: soft accent color, e.g. "Active" in the admin color scheme */
+.heatbox-badge.is-info {
+	color: var(--heatbox-accent);
+	background: var(--heatbox-accent-soft);
+}
+
 .heatbox-badge.is-success {
 	color: var(--heatbox-success);
 	background: var(--heatbox-success-soft);
@@ -587,6 +634,7 @@ body {
 .heatbox input[type="password"],
 .heatbox input[type="search"],
 .heatbox input[type="tel"],
+.heatbox input[type="datetime-local"],
 .heatbox select,
 .heatbox textarea {
 	min-height: var(--heatbox-control-height);
@@ -615,6 +663,7 @@ body {
 .heatbox input[type="password"]:hover,
 .heatbox input[type="search"]:hover,
 .heatbox input[type="tel"]:hover,
+.heatbox input[type="datetime-local"]:hover,
 .heatbox select:hover,
 .heatbox textarea:hover {
 	border-color: var(--heatbox-control-border);
@@ -627,6 +676,7 @@ body {
 .heatbox input[type="password"]:focus,
 .heatbox input[type="search"]:focus,
 .heatbox input[type="tel"]:focus,
+.heatbox input[type="datetime-local"]:focus,
 .heatbox select:focus,
 .heatbox textarea:focus {
 	border-color: var(--heatbox-accent);
@@ -637,6 +687,81 @@ body {
 .heatbox input::placeholder,
 .heatbox textarea::placeholder {
 	color: var(--heatbox-control-disabled);
+}
+
+/**
+ * Field with a prefix, e.g. the site address in front of a slug:
+ * <div class="heatbox-input-group"><span class="heatbox-input-prefix">https://example.com/</span><input type="text"></div>
+ * A long prefix is cut off with "…" (the full text shows on hover via title="").
+ */
+.heatbox-input-group {
+	display: flex;
+	width: 100%;
+	max-width: 480px;
+	border-radius: var(--heatbox-radius-control);
+	transition: box-shadow var(--heatbox-transition);
+}
+
+/* Focus: the ring goes around the whole field, prefix included */
+.heatbox-input-group:focus-within {
+	box-shadow: 0 0 0 3px var(--heatbox-accent-soft-border);
+}
+
+.heatbox-input-group:focus-within .heatbox-input-prefix {
+	border-color: var(--heatbox-accent);
+}
+
+.heatbox-input-prefix {
+	display: block;
+	flex-shrink: 1;
+	min-width: 0;
+	max-width: 60%;
+	padding: 0 12px;
+	overflow: hidden;
+	font-size: 13px;
+	line-height: calc(var(--heatbox-control-height) - 2px);
+	color: var(--heatbox-text-muted);
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	background: var(--heatbox-surface-muted);
+	border: 1px solid var(--heatbox-border);
+	border-inline-end: none;
+	border-start-start-radius: var(--heatbox-radius-control);
+	border-end-start-radius: var(--heatbox-radius-control);
+	transition: border-color var(--heatbox-transition);
+}
+
+.heatbox .heatbox-input-group input {
+	flex: 1;
+	min-width: 0;
+	margin: 0;
+	border-start-start-radius: 0;
+	border-end-start-radius: 0;
+}
+
+.heatbox .heatbox-input-group input:focus {
+	box-shadow: none;
+}
+
+/* WordPress' code editor (wp.codeEditor / CodeMirror), styled like the fields */
+.heatbox .CodeMirror {
+	border: 1px solid var(--heatbox-border);
+	border-radius: var(--heatbox-radius-control);
+	transition: border-color var(--heatbox-transition), box-shadow var(--heatbox-transition);
+}
+
+.heatbox .CodeMirror:hover {
+	border-color: var(--heatbox-control-border);
+}
+
+.heatbox .CodeMirror.CodeMirror-focused {
+	border-color: var(--heatbox-accent);
+	box-shadow: 0 0 0 3px var(--heatbox-accent-soft-border);
+}
+
+.heatbox .CodeMirror-gutters {
+	border-start-start-radius: var(--heatbox-radius-control);
+	border-end-start-radius: var(--heatbox-radius-control);
 }
 
 /**
@@ -753,6 +878,22 @@ body {
 	background-color: var(--heatbox-control-disabled);
 }
 
+/*
+ * Choices below each other, for longer labels:
+ * <div class="choice-list" role="radiogroup" aria-labelledby="…"><label class="label radio-label">…</label>…</div>
+ * Works the same for checkbox labels.
+ */
+.heatbox .choice-list {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 14px;
+}
+
+.heatbox .choice-list .label {
+	margin-inline-end: 0;
+}
+
 /**
  * Toggle switch.
  *
@@ -835,8 +976,9 @@ body {
 /**
  * WP buttons, modernized: rounded like the fields, a little roomier, medium weight.
  * Colors, hover & focus stay WordPress' own (primary follows the admin color scheme).
+ * WordPress also draws .button-primary / .button-secondary without .button as buttons (older markup): those too.
  */
-.heatbox-wrap .button {
+.heatbox-wrap :is(.button, .button-primary, .button-secondary) {
 	border-radius: var(--heatbox-radius-control);
 	font-weight: 500;
 	transition: background-color var(--heatbox-transition), border-color var(--heatbox-transition), color var(--heatbox-transition);
@@ -844,12 +986,14 @@ body {
 
 /* WP already enlarges buttons below 783px */
 @media screen and (min-width: 783px) {
-	.heatbox-wrap .button:not(.button-small) {
+	.heatbox-wrap :is(.button, .button-primary, .button-secondary):not(.button-small) {
 		min-height: 34px;
 		padding: 0 14px;
 		line-height: 32px;
 	}
 
+	/* A button next to a text field (e.g. "Upload" after a URL field, a license key's buttons) matches its height */
+	.heatbox-wrap :is(input[type="text"], input[type="url"], input[type="email"], input[type="number"], input[type="password"], input[type="search"]) ~ :is(.button, .button-primary, .button-secondary):not(.button-small),
 	.heatbox-wrap .button-large,
 	.heatbox-wrap .button-larger {
 		min-height: var(--heatbox-control-height);
@@ -857,6 +1001,12 @@ body {
 		font-size: 14px;
 		line-height: calc(var(--heatbox-control-height) - 2px);
 		vertical-align: middle;
+	}
+
+	/* …and lines up with it (the field sits on its text baseline, which put the button 2px lower) */
+	.heatbox-wrap :is(input[type="text"], input[type="url"], input[type="email"], input[type="number"], input[type="password"], input[type="search"]):has(~ :is(.button, .button-primary, .button-secondary):not(.button-small)),
+	.heatbox-wrap :is(input[type="text"], input[type="url"], input[type="email"], input[type="number"], input[type="password"], input[type="search"]) ~ :is(.button, .button-primary, .button-secondary):not(.button-small) {
+		vertical-align: top;
 	}
 }
 
@@ -868,6 +1018,7 @@ body {
 .heatbox-wrap input[type="file"] {
 	box-sizing: border-box;
 	width: 100%;
+	max-width: 360px;
 	min-height: var(--heatbox-control-height);
 	padding: 3px;
 	font-size: 13px;
